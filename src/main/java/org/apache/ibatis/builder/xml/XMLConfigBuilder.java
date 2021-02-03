@@ -48,6 +48,8 @@ import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.TypeHandler;
 
 /**
+ * xml解析器，封装了XPathParser
+ *
  * @author Clinton Begin
  * @author Kazuki Shimizu
  */
@@ -108,7 +110,7 @@ public class XMLConfigBuilder extends BaseBuilder {
     ErrorContext.instance().resource("SQL Mapper Configuration");
     // 设置外部properties配置文件加载到configuration对象的变量variables
     this.configuration.setVariables(props);
-    // 文件是否已解析完成
+    // 文件是否已解析flag
     this.parsed = false;
     // 默认使用哪个数据源环境
     this.environment = environment;

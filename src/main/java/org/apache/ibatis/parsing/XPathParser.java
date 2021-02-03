@@ -40,6 +40,7 @@ import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
 /**
+ * xml解析器工具类
  * @author Clinton Begin
  */
 public class XPathParser {

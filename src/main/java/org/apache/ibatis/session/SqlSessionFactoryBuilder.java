@@ -28,8 +28,7 @@ import org.apache.ibatis.session.defaults.DefaultSqlSessionFactory;
 /**
  * Builds {@link SqlSession} instances.
  * 该类的职责：
- *    构建SqlSession实例
- *    sqlSession是mybatis对jdbc一次连接会话的封装。
+ *    构建SqlSessionFactory实例
  * @author Clinton Begin
  */
 public class SqlSessionFactoryBuilder {

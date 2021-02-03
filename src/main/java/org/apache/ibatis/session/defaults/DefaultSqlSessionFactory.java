@@ -33,6 +33,7 @@ import org.apache.ibatis.transaction.managed.ManagedTransactionFactory;
 
 /**
  * SqlSessionFactory的默认实现
+ * 封装sqlSession, sqlSession是mybatis对jdbc一次连接会话的封装。
  * @author Clinton Begin
  */
 public class DefaultSqlSessionFactory implements SqlSessionFactory {
