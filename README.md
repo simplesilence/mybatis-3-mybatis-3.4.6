@@ -1,4 +1,4 @@
-MyBatis3.4.6 源码阅读
+MyBatis3.4.6 源码阅读理解
 =====================================
 
 MyBatis SQL Mapper Framework for Java

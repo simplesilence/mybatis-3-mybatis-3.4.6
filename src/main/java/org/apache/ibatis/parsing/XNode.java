@@ -27,6 +27,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 /**
+ * xml标签的封装，用于抽象表示xml中的一个标签
  * @author Clinton Begin
  */
 public class XNode {
@@ -287,13 +288,19 @@ public class XNode {
     }
   }
 
+  /**
+   * 获取当前节点的所有子节点集合
+   * @return
+   */
   public List<XNode> getChildren() {
     List<XNode> children = new ArrayList<XNode>();
+    // 获取子节点列表
     NodeList nodeList = node.getChildNodes();
     if (nodeList != null) {
       for (int i = 0, n = nodeList.getLength(); i < n; i++) {
         Node node = nodeList.item(i);
         if (node.getNodeType() == Node.ELEMENT_NODE) {
+          // 把子节点封装为XNode放入集合返回
           children.add(new XNode(xpathParser, node, variables));
         }
       }
@@ -301,10 +308,21 @@ public class XNode {
     return children;
   }
 
+
+  /**
+   * 对所有子标签组装成Properties
+   * 比如：
+   *    properties中的<property name="username" value="root"/>
+   *    settings中的<setting name="cacheEnabled" value="true"/>
+   * Properties本质是个键值对，扩展了hashtable，hashtable是hashmap的线程安全版本。
+   * @return
+   */
   public Properties getChildrenAsProperties() {
     Properties properties = new Properties();
     for (XNode child : getChildren()) {
+      // 标签上name属性的值
       String name = child.getStringAttribute("name");
+      // 标签上value属性的值
       String value = child.getStringAttribute("value");
       if (name != null && value != null) {
         properties.setProperty(name, value);

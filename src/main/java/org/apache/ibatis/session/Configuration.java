@@ -123,10 +123,16 @@ public class Configuration {
   protected AutoMappingBehavior autoMappingBehavior = AutoMappingBehavior.PARTIAL;
   protected AutoMappingUnknownColumnBehavior autoMappingUnknownColumnBehavior = AutoMappingUnknownColumnBehavior.NONE;
 
-  // 对应配置文件<properties/>标签，用于使用外部properties配置文件定义的键值
+  /**
+   * 对应配置文件<properties/>标签，存储所有properties标签定义的键值，
+   * 包括properties标签中resource指定的本地文件或是url指定的远程文件
+   */
   protected Properties variables = new Properties();
+  // 不常用，暂不研究
   protected ReflectorFactory reflectorFactory = new DefaultReflectorFactory();
+  // 不常用，暂不研究
   protected ObjectFactory objectFactory = new DefaultObjectFactory();
+  // 不常用，暂不研究
   protected ObjectWrapperFactory objectWrapperFactory = new DefaultObjectWrapperFactory();
 
   protected boolean lazyLoadingEnabled = false;

@@ -137,7 +137,7 @@ public class XMLConfigBuilder extends BaseBuilder {
 
   /**
    * 解析mybatis配置文件中的所有标签
-   * 请对照mybatis详细的配置文件 https://www.cnblogs.com/wangjiming/p/10399320.html
+   * 请对照mybatis详细的配置文件 网上找了一个比较全的：https://www.cnblogs.com/wangjiming/p/10399320.html
    * @param root
    */
   private void parseConfiguration(XNode root) {
@@ -145,9 +145,7 @@ public class XMLConfigBuilder extends BaseBuilder {
       //issue #117 read properties first
       /**
        * 加载外部properties配置文件
-       * <properties resource="db.properties"/>
-       * 自定义键值
-       * <properties>
+       * <properties resource="db.properties">
        *    <property name="username" value="root"/>
        *    <property name="password" value="root"/>
        * </properties>
@@ -243,12 +241,21 @@ public class XMLConfigBuilder extends BaseBuilder {
     }
   }
 
+  /**
+   * settings标签节点解析
+   * @param context
+   * @return
+   */
   private Properties settingsAsProperties(XNode context) {
     if (context == null) {
       return new Properties();
     }
+
+    // 所有子节点setting的name，value键值对
     Properties props = context.getChildrenAsProperties();
+
     // Check that all settings are known to the configuration class
+    // 检查解析出来的属性是否是Configuration所规定的属性，通过是否有某个属性的setter方式来检测
     MetaClass metaConfig = MetaClass.forClass(Configuration.class, localReflectorFactory);
     for (Object key : props.keySet()) {
       if (!metaConfig.hasSetter(String.valueOf(key))) {
@@ -334,23 +341,36 @@ public class XMLConfigBuilder extends BaseBuilder {
     }
   }
 
+  /**
+   * properties标签节点解析
+   * @param context
+   * @throws Exception
+   */
   private void propertiesElement(XNode context) throws Exception {
     if (context != null) {
+      // 获取所有property标签的name，value键值对
       Properties defaults = context.getChildrenAsProperties();
+      // resource属性指定本地文件地址
       String resource = context.getStringAttribute("resource");
+      // url属性指定远程文件地址
       String url = context.getStringAttribute("url");
+      // properties标签不能同时存在resource和url属性
       if (resource != null && url != null) {
         throw new BuilderException("The properties element cannot specify both a URL and a resource based property file reference.  Please specify one or the other.");
       }
       if (resource != null) {
+        // 加载本地properties文件并解析为Properties，添加到defaults
         defaults.putAll(Resources.getResourceAsProperties(resource));
       } else if (url != null) {
+        // 加载远程properties文件并解析为Properties，添加到defaults
         defaults.putAll(Resources.getUrlAsProperties(url));
       }
+      // 获取configuration自有的Properties
       Properties vars = configuration.getVariables();
       if (vars != null) {
         defaults.putAll(vars);
       }
+      // Properties所以变量放入parser和configuration的variables中
       parser.setVariables(defaults);
       configuration.setVariables(defaults);
     }

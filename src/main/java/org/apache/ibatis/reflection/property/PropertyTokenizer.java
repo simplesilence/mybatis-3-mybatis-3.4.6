@@ -27,9 +27,12 @@ public class PropertyTokenizer implements Iterator<PropertyTokenizer> {
   private final String children;
 
   public PropertyTokenizer(String fullname) {
+    // 属性名中是否包含"."，包含就是复合属性，否则就是单属性
     int delim = fullname.indexOf('.');
     if (delim > -1) {
+      // 名字的第一个.之前的值
       name = fullname.substring(0, delim);
+      // 剩下的值，不包含.
       children = fullname.substring(delim + 1);
     } else {
       name = fullname;
