@@ -54,7 +54,7 @@ public class DefaultReflectorFactory implements ReflectorFactory {
       // synchronized (type) removed see issue #461
       Reflector cached = reflectorMap.get(type);
       if (cached == null) {
-        // 针对class构造一个反射器，并放入缓存
+        // 重点，针对class构造一个反射器，并放入缓存
         cached = new Reflector(type);
         reflectorMap.put(type, cached);
       }

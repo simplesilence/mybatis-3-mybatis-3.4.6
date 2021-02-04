@@ -27,21 +27,33 @@ import org.apache.ibatis.reflection.invoker.MethodInvoker;
 import org.apache.ibatis.reflection.property.PropertyTokenizer;
 
 /**
+ * 提供一些对Reflector的操作
  * @author Clinton Begin
  */
 public class MetaClass {
 
+  // 反射器工厂接口，默认实现类DefaultReflectorFactory，用户创建或从缓存中获取反射器
   private final ReflectorFactory reflectorFactory;
+  // 反射器，用于反射出任意Class的元信息
   private final Reflector reflector;
 
   private MetaClass(Class<?> type, ReflectorFactory reflectorFactory) {
     this.reflectorFactory = reflectorFactory;
+    // 很重要，这一步以及往下。创建给定的Class对象的反射器
     this.reflector = reflectorFactory.findForClass(type);
   }
 
+  /**
+   * 初始化元信息工具类
+   * @param type
+   * @param reflectorFactory
+   * @return
+   */
   public static MetaClass forClass(Class<?> type, ReflectorFactory reflectorFactory) {
     return new MetaClass(type, reflectorFactory);
   }
+
+
 
   public MetaClass metaClassForProperty(String name) {
     Class<?> propType = reflector.getGetterType(name);
@@ -132,6 +144,11 @@ public class MetaClass {
     return null;
   }
 
+  /**
+   * 判断name是否属于由反射器通过type构建出来的对象
+   * @param name
+   * @return
+   */
   public boolean hasSetter(String name) {
     PropertyTokenizer prop = new PropertyTokenizer(name);
     if (prop.hasNext()) {

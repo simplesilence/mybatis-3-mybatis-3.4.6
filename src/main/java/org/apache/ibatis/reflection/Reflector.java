@@ -42,31 +42,51 @@ import org.apache.ibatis.reflection.property.PropertyNamer;
  * This class represents a cached set of class definition information that
  * allows for easy mapping between property names and getter/setter methods.
  *
- * 该类主要通过反射获取目标类的getter方法以及返回值类型，setter方法和参数类型。
+ * 该类极为重要，须认真分析
+ * 主要通过反射获取目标类的getter方法以及返回值类型，setter方法和参数类型，属性集合等。
  * 并将获取到的值缓存到对应集合。
  * @author Clinton Begin
  */
 public class Reflector {
 
+  // 目标类，被反射的类
   private final Class<?> type;
+  // 提供了get方法或者is方法的属性名集合
   private final String[] readablePropertyNames;
+  // 提供了set方法的属性名集合
   private final String[] writeablePropertyNames;
+  // setter对应的属性名与setter方法封装的映射
   private final Map<String, Invoker> setMethods = new HashMap<String, Invoker>();
+  // getter对应的属性名与getter方法封装的映射
   private final Map<String, Invoker> getMethods = new HashMap<String, Invoker>();
+  // setter对应的属性名与设置参数类型的映射
   private final Map<String, Class<?>> setTypes = new HashMap<String, Class<?>>();
+  // getter对应的属性名与返回值类型的映射
   private final Map<String, Class<?>> getTypes = new HashMap<String, Class<?>>();
+  // 默认构造器
   private Constructor<?> defaultConstructor;
-
+  // 属性名大小写集合<大写方法名，原方法名>
   private Map<String, String> caseInsensitivePropertyMap = new HashMap<String, String>();
 
+  /**
+   * 初始化Reflector
+   * @param clazz
+   */
   public Reflector(Class<?> clazz) {
     type = clazz;
+    // 解析目标类的默认构造器，并赋值给defaultConstructor
     addDefaultConstructor(clazz);
+    // 解析目标类的getter方法，存入getMethods集合
     addGetMethods(clazz);
+    // 解析目标类的setter方法，存入setMethods集合
     addSetMethods(clazz);
+    // 解析目标类以及所有父类的属性，存入setTypes、getTypes集合，如果该属性不在setMethods、getMethods集合中存在，则也相应存入
     addFields(clazz);
+    // 提供了get方法或者is方法的属性名集合
     readablePropertyNames = getMethods.keySet().toArray(new String[getMethods.keySet().size()]);
+    // 提供了set方法的属性名集合
     writeablePropertyNames = setMethods.keySet().toArray(new String[setMethods.keySet().size()]);
+    // 所有属性名大小写map集合<全大写属性名，原属性名>
     for (String propName : readablePropertyNames) {
       caseInsensitivePropertyMap.put(propName.toUpperCase(Locale.ENGLISH), propName);
     }
@@ -95,15 +115,20 @@ public class Reflector {
 
   private void addGetMethods(Class<?> cls) {
     Map<String, List<Method>> conflictingGetters = new HashMap<String, List<Method>>();
+    // 获取cls以及其父类的任何方法的集合
     Method[] methods = getClassMethods(cls);
     for (Method method : methods) {
+      // 如果方法有参数，略过，先过滤掉有参数的方法，因为get方法没有参数
       if (method.getParameterTypes().length > 0) {
         continue;
       }
       String name = method.getName();
+      // 方法名不以get、is开头不属于getter方法
       if ((name.startsWith("get") && name.length() > 3)
           || (name.startsWith("is") && name.length() > 2)) {
+        // 去掉get，is
         name = PropertyNamer.methodToProperty(name);
+        //
         addMethodConflict(conflictingGetters, name, method);
       }
     }
@@ -253,6 +278,10 @@ public class Reflector {
     return result;
   }
 
+  /**
+   * 解析目标类的属性，并递归解析父类
+   * @param clazz
+   */
   private void addFields(Class<?> clazz) {
     Field[] fields = clazz.getDeclaredFields();
     for (Field field : fields) {
@@ -303,12 +332,15 @@ public class Reflector {
     return !(name.startsWith("$") || "serialVersionUID".equals(name) || "class".equals(name));
   }
 
-  /*
+  /**
    * This method returns an array containing all methods
    * declared in this class and any superclass.
    * We use this method, instead of the simpler Class.getMethods(),
    * because we want to look for private methods as well.
    *
+   * 翻译：
+   *    该方法返回在cls中声明的以及其父类的任何方法
+   *    用该方法代替Class.getMethods()，因为我们还想要查询到私有方法
    * @param cls The class
    * @return An array containing all methods in this class
    */
