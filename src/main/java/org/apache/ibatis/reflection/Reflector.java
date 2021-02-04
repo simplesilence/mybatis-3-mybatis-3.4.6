@@ -63,7 +63,7 @@ public class Reflector {
   private final Map<String, Class<?>> setTypes = new HashMap<String, Class<?>>();
   // getter对应的属性名与返回值类型的映射
   private final Map<String, Class<?>> getTypes = new HashMap<String, Class<?>>();
-  // 默认构造器
+  // 默认构造器（无参）
   private Constructor<?> defaultConstructor;
   // 属性名大小写集合<大写方法名，原方法名>
   private Map<String, String> caseInsensitivePropertyMap = new HashMap<String, String>();
@@ -95,6 +95,10 @@ public class Reflector {
     }
   }
 
+  /**
+   * 设置无参构造对象
+   * @param clazz
+   */
   private void addDefaultConstructor(Class<?> clazz) {
     Constructor<?>[] consts = clazz.getDeclaredConstructors();
     for (Constructor<?> constructor : consts) {
@@ -113,6 +117,10 @@ public class Reflector {
     }
   }
 
+  /**
+   * 添加属性的get方法到getMethods、getTypes
+   * @param cls
+   */
   private void addGetMethods(Class<?> cls) {
     Map<String, List<Method>> conflictingGetters = new HashMap<String, List<Method>>();
     // 获取cls以及其父类的任何方法的集合
@@ -128,13 +136,18 @@ public class Reflector {
           || (name.startsWith("is") && name.length() > 2)) {
         // 去掉get，is
         name = PropertyNamer.methodToProperty(name);
-        //
+        // get 和 is重名的属性放入conflictingGetters<属性名，get和is方法集合>
         addMethodConflict(conflictingGetters, name, method);
       }
     }
+    // 解决get和is冲突的方法
     resolveGetterConflicts(conflictingGetters);
   }
 
+  /**
+   * get、is方法冲突（怕有get、is方法重载）
+   * @param conflictingGetters
+   */
   private void resolveGetterConflicts(Map<String, List<Method>> conflictingGetters) {
     for (Entry<String, List<Method>> entry : conflictingGetters.entrySet()) {
       Method winner = null;
@@ -146,18 +159,30 @@ public class Reflector {
         }
         Class<?> winnerType = winner.getReturnType();
         Class<?> candidateType = candidate.getReturnType();
+        // 两个方法返回值类型一样
         if (candidateType.equals(winnerType)) {
+          /*
+           * 只要判断其中一个是否是布尔值，就知道另一个是否是布尔值
+           * 若两个都不是boolean，抛出异常，因为无法确定那个是正确的
+           * 这里要注意，为什么boolean类型就能判断出是否用这个方法，因为is开头的方法语义化返回就是boolean类型。
+           */
           if (!boolean.class.equals(candidateType)) {
             throw new ReflectionException(
                 "Illegal overloaded getter method with ambiguous type for property "
                     + propName + " in class " + winner.getDeclaringClass()
                     + ". This breaks the JavaBeans specification and can cause unpredictable results.");
-          } else if (candidate.getName().startsWith("is")) {
+          }
+          // 是boolean类型，又是以is开头，当前候选method就是winner
+          else if (candidate.getName().startsWith("is")) {
             winner = candidate;
           }
-        } else if (candidateType.isAssignableFrom(winnerType)) {
+        }
+        // winnerType 是 candidateType的子类
+        else if (candidateType.isAssignableFrom(winnerType)) {
           // OK getter type is descendant
-        } else if (winnerType.isAssignableFrom(candidateType)) {
+        }
+        // candidateType 是 winnerType的子类
+        else if (winnerType.isAssignableFrom(candidateType)) {
           winner = candidate;
         } else {
           throw new ReflectionException(
@@ -166,18 +191,32 @@ public class Reflector {
                   + ". This breaks the JavaBeans specification and can cause unpredictable results.");
         }
       }
+      // 对当前属性propName确定了get方法后添加到getMethods、getTypes
       addGetMethod(propName, winner);
     }
   }
 
+  /**
+   * 添加
+   *    getMethods<name, new MethodInvoker<method>>、
+   *    getTypes<name, Class>
+   * @param name
+   * @param method
+   */
   private void addGetMethod(String name, Method method) {
     if (isValidPropertyName(name)) {
+      // 属性名和get方法的映射
       getMethods.put(name, new MethodInvoker(method));
+      // 属性名和返回值类型的映射
       Type returnType = TypeParameterResolver.resolveReturnType(method, type);
       getTypes.put(name, typeToClass(returnType));
     }
   }
 
+  /**
+   * set和get大致相同，一看就懂，不做详细分析
+   * @param cls
+   */
   private void addSetMethods(Class<?> cls) {
     Map<String, List<Method>> conflictingSetters = new HashMap<String, List<Method>>();
     Method[] methods = getClassMethods(cls);
@@ -193,17 +232,31 @@ public class Reflector {
     resolveSetterConflicts(conflictingSetters);
   }
 
+  /**
+   * 对方法名去掉set，get，is之后有相同名字的属性，
+   * 暂时放入conflictingMethods<属性名，List<Method>>
+   * @param conflictingMethods
+   * @param name
+   * @param method
+   */
   private void addMethodConflict(Map<String, List<Method>> conflictingMethods, String name, Method method) {
+    // 改属性名之前是否有冲突的方法
     List<Method> list = conflictingMethods.get(name);
+    // 没有创建一个
     if (list == null) {
       list = new ArrayList<Method>();
       conflictingMethods.put(name, list);
     }
+    // 有的话，add到之前的集合
     list.add(method);
   }
 
+  /**
+   * set和get大致相同，一看就懂，不做详细分析
+   */
   private void resolveSetterConflicts(Map<String, List<Method>> conflictingSetters) {
     for (String propName : conflictingSetters.keySet()) {
+      // 属性名的set方法集合
       List<Method> setters = conflictingSetters.get(propName);
       Class<?> getterType = getTypes.get(propName);
       Method match = null;
@@ -217,6 +270,7 @@ public class Reflector {
         }
         if (exception == null) {
           try {
+            // 注意这里和get本质是一样的，这里类似于把get那里的winner和当前setter的选择封装到pickBetterSetter了
             match = pickBetterSetter(match, setter, propName);
           } catch (ReflectionException e) {
             // there could still be the 'best match'
@@ -233,6 +287,9 @@ public class Reflector {
     }
   }
 
+  /**
+   * setter方法冲突是，选择更适合的setter方法
+   */
   private Method pickBetterSetter(Method setter1, Method setter2, String property) {
     if (setter1 == null) {
       return setter2;
@@ -249,6 +306,9 @@ public class Reflector {
         + paramType2.getName() + "'.");
   }
 
+  /**
+   * set和get大致相同，一看就懂，不做详细分析
+   */
   private void addSetMethod(String name, Method method) {
     if (isValidPropertyName(name)) {
       setMethods.put(name, new MethodInvoker(method));
@@ -257,6 +317,12 @@ public class Reflector {
     }
   }
 
+  /**
+   * Type是Java编程语言中所有类型的公共高级接口
+   * TODO 留个todo项，以后研究
+   * @param src
+   * @return
+   */
   private Class<?> typeToClass(Type src) {
     Class<?> result = null;
     if (src instanceof Class) {
@@ -328,6 +394,11 @@ public class Reflector {
     }
   }
 
+  /**
+   * 是否是合法的属性命名，不能用$开头，属性名不能为serialVersionUID和class
+   * @param name
+   * @return
+   */
   private boolean isValidPropertyName(String name) {
     return !(name.startsWith("$") || "serialVersionUID".equals(name) || "class".equals(name));
   }
@@ -340,7 +411,7 @@ public class Reflector {
    *
    * 翻译：
    *    该方法返回在cls中声明的以及其父类的任何方法
-   *    用该方法代替Class.getMethods()，因为我们还想要查询到私有方法
+   *    用该方法代替Class.getMethods()，因为我们还想要获取到私有方法
    * @param cls The class
    * @return An array containing all methods in this class
    */
