@@ -169,6 +169,7 @@ public class XMLConfigBuilder extends BaseBuilder {
        *     <setting name="useGeneratedKeys" value="false"/>
        * </settings>
        */
+      // 把settings解析为Properties对象
       Properties settings = settingsAsProperties(root.evalNode("settings"));
       // 加载虚拟文件系统的资源，暂不研究
       loadCustomVfs(settings);
@@ -256,8 +257,8 @@ public class XMLConfigBuilder extends BaseBuilder {
 
     // Check that all settings are known to the configuration class
     // 创建Configuration的元信息
-    // 检查解析出来的属性是否是Configuration所规定的属性，通过是否有某个属性的setter方式来检测
     MetaClass metaConfig = MetaClass.forClass(Configuration.class, localReflectorFactory);
+    // 检查解析出来的属性是否是Configuration所规定的属性，通过hasSetter方式来检测，有一个不是就报错
     for (Object key : props.keySet()) {
       if (!metaConfig.hasSetter(String.valueOf(key))) {
         throw new BuilderException("The setting " + key + " is not known.  Make sure you spelled it correctly (case sensitive).");
@@ -280,18 +281,25 @@ public class XMLConfigBuilder extends BaseBuilder {
     }
   }
 
+  /**
+   * 配置别名标签<typeAliases/>的解析
+   * @param parent
+   */
   private void typeAliasesElement(XNode parent) {
     if (parent != null) {
       for (XNode child : parent.getChildren()) {
+        // 包扫描解析对应实体类别名
         if ("package".equals(child.getName())) {
           String typeAliasPackage = child.getStringAttribute("name");
           configuration.getTypeAliasRegistry().registerAliases(typeAliasPackage);
         } else {
+          // 配置<typeAlias/>标签的别名设置
           String alias = child.getStringAttribute("alias");
           String type = child.getStringAttribute("type");
           try {
             Class<?> clazz = Resources.classForName(type);
             if (alias == null) {
+              // 如果没有设置别名，默认使用类型的SimpleName
               typeAliasRegistry.registerAlias(clazz);
             } else {
               typeAliasRegistry.registerAlias(alias, clazz);
@@ -303,6 +311,7 @@ public class XMLConfigBuilder extends BaseBuilder {
       }
     }
   }
+
 
   private void pluginElement(XNode parent) throws Exception {
     if (parent != null) {

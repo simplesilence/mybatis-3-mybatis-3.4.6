@@ -18,19 +18,28 @@ package org.apache.ibatis.reflection.property;
 import java.util.Iterator;
 
 /**
+ * 属性分词器
+ *    用于解析复杂属性的写法
  * @author Clinton Begin
  */
 public class PropertyTokenizer implements Iterator<PropertyTokenizer> {
+  // 属性名
   private String name;
+  // TODO 存储跟属性名一样
   private final String indexedName;
+  // 如果是数组，存储下标
   private String index;
+  // 子级属性
   private final String children;
 
   public PropertyTokenizer(String fullname) {
     // 属性名中是否包含"."，包含就是复合属性，否则就是单属性
     int delim = fullname.indexOf('.');
     if (delim > -1) {
-      // 名字的第一个.之前的值
+      /*
+       * 名字的第一个.之前的值
+       * 例如person.id，将person存入name，id存入children
+       */
       name = fullname.substring(0, delim);
       // 剩下的值，不包含.
       children = fullname.substring(delim + 1);
@@ -39,9 +48,12 @@ public class PropertyTokenizer implements Iterator<PropertyTokenizer> {
       children = null;
     }
     indexedName = name;
+    // 属性名存在[]，比如personList[0]
     delim = name.indexOf('[');
     if (delim > -1) {
+      // 把索引存入index
       index = name.substring(delim + 1, name.length() - 1);
+      // 索引之前存入name，比如personList
       name = name.substring(0, delim);
     }
   }

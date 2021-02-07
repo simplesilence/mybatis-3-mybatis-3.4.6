@@ -53,7 +53,7 @@ import org.apache.ibatis.logging.LogFactory;
  * resolver.find(new CustomTest(), pkg2);
  * Collection&lt;ActionBean&gt; beans = resolver.getClasses();
  * </pre>
- *
+ * 该类未提供构造方法，编译器自动提供一个无参构造
  * @author Tim Fennell
  */
 public class ResolverUtil<T> {
@@ -214,6 +214,7 @@ public class ResolverUtil<T> {
    *        classes, e.g. {@code net.sourceforge.stripes}
    */
   public ResolverUtil<T> find(Test test, String packageName) {
+    // 把包名解析为路径地址
     String path = getPackagePath(packageName);
 
     try {
@@ -233,7 +234,10 @@ public class ResolverUtil<T> {
   /**
    * Converts a Java package name to a path that can be looked up with a call to
    * {@link ClassLoader#getResources(String)}.
-   * 
+   * 把包名的.替换为/，包名解析为路径
+   *  这里replace方法参数用的char类型，
+   *  replaceAll方法也replace一样都是全部替换，replaceAll支持正则匹配替换
+   *  注意，replace并不是只替换第一个匹配到的，最近写JavaScript写多了，总以为replace是只替换第一个
    * @param packageName The Java package name to convert to a path
    */
   protected String getPackagePath(String packageName) {

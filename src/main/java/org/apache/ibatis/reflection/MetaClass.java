@@ -145,24 +145,38 @@ public class MetaClass {
   }
 
   /**
-   * 判断name是否属于由反射器通过type构建出来的对象
+   * 判断name是否具有setter方法
    * @param name
    * @return
    */
   public boolean hasSetter(String name) {
+    // 属性分词器，根据name构建一个合法的属性分词器
     PropertyTokenizer prop = new PropertyTokenizer(name);
+    /*
+     * 如果属性存在多级写法，比如：animal.people.programmer[0]
+     * 就会根据.分隔符一步步解析
+     */
     if (prop.hasNext()) {
       if (reflector.hasSetter(prop.getName())) {
+        // 根据属性名构建多级属性的每一级属性的getter方法返回值类型的MetaClass
+        // 下面这两行不是递归，是deep层级判断
         MetaClass metaProp = metaClassForProperty(prop.getName());
+        // 验证每一级是否存在setter方法
         return metaProp.hasSetter(prop.getChildren());
       } else {
         return false;
       }
     } else {
+      // 只有简单的一个属性名，直接判断返回
       return reflector.hasSetter(prop.getName());
     }
   }
 
+  /**
+   * 判断name是否具有getter方法
+   * @param name
+   * @return
+   */
   public boolean hasGetter(String name) {
     PropertyTokenizer prop = new PropertyTokenizer(name);
     if (prop.hasNext()) {
