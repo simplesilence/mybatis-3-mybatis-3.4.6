@@ -171,7 +171,12 @@ public class XMLConfigBuilder extends BaseBuilder {
        */
       // 把settings解析为Properties对象
       Properties settings = settingsAsProperties(root.evalNode("settings"));
-      // 加载虚拟文件系统的资源，暂不研究
+      /**
+       * 加载自定义的VFS实现类
+       *    VFS含义是虚拟文件系统；主要是通过程序能够方便读取本地文件系统、FTP文件系统等系统中的文件资源。
+       *    暂不研究，如果是本地文件系统
+       *    如果是FTP文件系统的文件，其实底层就是用了JDK的URLClassPath用来获取远程class文件
+       */
       loadCustomVfs(settings);
       /**
        * 实体类别名标签
@@ -396,6 +401,11 @@ public class XMLConfigBuilder extends BaseBuilder {
     }
   }
 
+  /**
+   * 设置settings对mybatis的配置环境属性
+   * @param props
+   * @throws Exception
+   */
   private void settingsElement(Properties props) throws Exception {
     configuration.setAutoMappingBehavior(AutoMappingBehavior.valueOf(props.getProperty("autoMappingBehavior", "PARTIAL")));
     configuration.setAutoMappingUnknownColumnBehavior(AutoMappingUnknownColumnBehavior.valueOf(props.getProperty("autoMappingUnknownColumnBehavior", "NONE")));
@@ -429,22 +439,35 @@ public class XMLConfigBuilder extends BaseBuilder {
     configuration.setConfigurationFactory(resolveClass(props.getProperty("configurationFactory")));
   }
 
+  /**
+   * 解析environments标签
+   * @param context
+   * @throws Exception
+   */
   private void environmentsElement(XNode context) throws Exception {
     if (context != null) {
+      // 构造时没传入指定的environment，则设置default属性值对应的数据库
       if (environment == null) {
         environment = context.getStringAttribute("default");
       }
       for (XNode child : context.getChildren()) {
         String id = child.getStringAttribute("id");
+        // 判断指定的default和当前environment标签的id是否一样
         if (isSpecifiedEnvironment(id)) {
+          // 事务管理器工厂
           TransactionFactory txFactory = transactionManagerElement(child.evalNode("transactionManager"));
+          // 数据源工厂
           DataSourceFactory dsFactory = dataSourceElement(child.evalNode("dataSource"));
+          // 获取具体的数据源
           DataSource dataSource = dsFactory.getDataSource();
+          // Environment建造者
           Environment.Builder environmentBuilder = new Environment.Builder(id)
               .transactionFactory(txFactory)
               .dataSource(dataSource);
+          // 构建Environment对象存入configuration中
           configuration.setEnvironment(environmentBuilder.build());
         }
+        // 否则，配置其他的数据源在这里不做初始化
       }
     }
   }
@@ -468,10 +491,22 @@ public class XMLConfigBuilder extends BaseBuilder {
     }
   }
 
+  /**
+   * 解析事务管理配置标签<transactionManager />
+   * Mybatis支持两种类型的事务管理器：
+   *    JDBC: 依赖于从数据源得到的连接来管理事务作用域
+   *    MANAGED: 这个配置几乎没做什么。它从来不提交或回滚一个连接，而是让容器来管理事务的整个生命周期（比如 JEE 应用服务器的上下文）。
+   * @param context
+   * @return
+   * @throws Exception
+   */
   private TransactionFactory transactionManagerElement(XNode context) throws Exception {
     if (context != null) {
+      // 那种事务管理方式
       String type = context.getStringAttribute("type");
+      // 子标签property
       Properties props = context.getChildrenAsProperties();
+      // 获取事务管理对应的实现类
       TransactionFactory factory = (TransactionFactory) resolveClass(type).newInstance();
       factory.setProperties(props);
       return factory;
@@ -479,10 +514,21 @@ public class XMLConfigBuilder extends BaseBuilder {
     throw new BuilderException("Environment declaration requires a TransactionFactory.");
   }
 
+  /**
+   * dataSource标签解析
+   *  UNPOOLED:这个数据源的实现只是每次被请求时打开和关闭连接
+   *  POOLED:这种数据源的实现利用“池”的概念将 JDBC 连接对象组织起来，避免了创建新的连接实例时所必需的初始化和认证时间。 这是一种使得并发 Web 应用快速响应请求的流行处理方式
+   *  JNDI:这个数据源的实现是为了能在如 EJB 或应用服务器这类容器中使用，容器可以集中或在外部配置数据源，然后放置一个 JNDI 上下文的引用
+   * @param context
+   * @return
+   * @throws Exception
+   */
   private DataSourceFactory dataSourceElement(XNode context) throws Exception {
     if (context != null) {
+      // 数据源类型UNPOOLED（没用过）、POOLED、JNDI（在很老的EJB保险系统中用过，已经忘了）
       String type = context.getStringAttribute("type");
       Properties props = context.getChildrenAsProperties();
+      // 获取对应数据源类型的工厂实例
       DataSourceFactory factory = (DataSourceFactory) resolveClass(type).newInstance();
       factory.setProperties(props);
       return factory;
