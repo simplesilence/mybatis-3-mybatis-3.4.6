@@ -27,7 +27,7 @@ import java.util.Properties;
 
 /**
  * A class to simplify access to resources through the classloader.
- *
+ * 翻译：通过类加载器简化对资源访问的类
  * @author Clinton Begin
  */
 public class Resources {
@@ -252,7 +252,7 @@ public class Resources {
 
   /*
    * Loads a class
-   *
+   * 根据className全限定类名返回该类的Class对象
    * @param className - the class to fetch
    * @return The loaded class
    * @throws ClassNotFoundException If the class cannot be found (duh!)

@@ -312,14 +312,24 @@ public class XMLConfigBuilder extends BaseBuilder {
     }
   }
 
-
+  /**
+   * 插件标签<plugins/>解析
+   * @param parent
+   * @throws Exception
+   */
   private void pluginElement(XNode parent) throws Exception {
     if (parent != null) {
+      // 遍历所有plugin子标签
       for (XNode child : parent.getChildren()) {
+        // mybatis插件实现类全限定类名
         String interceptor = child.getStringAttribute("interceptor");
+        // 插件的所有属性
         Properties properties = child.getChildrenAsProperties();
+        // 根据全限定类型获取类对象并实例化
         Interceptor interceptorInstance = (Interceptor) resolveClass(interceptor).newInstance();
+        // 设置properties
         interceptorInstance.setProperties(properties);
+        // 添加插件实例到configuration的InterceptorChain拦截器连链中
         configuration.addInterceptor(interceptorInstance);
       }
     }

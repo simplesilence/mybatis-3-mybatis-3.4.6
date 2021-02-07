@@ -112,6 +112,11 @@ public abstract class BaseBuilder {
     }
   }
 
+  /**
+   * 获取全限定类名的Class对象
+   * @param alias
+   * @return
+   */
   protected Class<?> resolveClass(String alias) {
     if (alias == null) {
       return null;
@@ -149,6 +154,11 @@ public abstract class BaseBuilder {
     return handler;
   }
 
+  /**
+   * 从别名map集合中获取对应的Class对象
+   * @param alias
+   * @return
+   */
   protected Class<?> resolveAlias(String alias) {
     return typeAliasRegistry.resolveAlias(alias);
   }

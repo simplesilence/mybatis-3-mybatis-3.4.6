@@ -20,7 +20,8 @@ import java.net.URL;
 
 /**
  * A class to wrap access to multiple class loaders making them work as one
- *
+ * 类加载器的包装类
+ * 翻译：该类包装多个类加载器，作为一个工作
  * @author Clinton Begin
  */
 public class ClassLoaderWrapper {
@@ -30,6 +31,7 @@ public class ClassLoaderWrapper {
 
   ClassLoaderWrapper() {
     try {
+      // 系统类加载器ApplicationClassLoader
       systemClassLoader = ClassLoader.getSystemClassLoader();
     } catch (SecurityException ignored) {
       // AccessControlException on Google App Engine   
@@ -80,7 +82,7 @@ public class ClassLoaderWrapper {
 
   /*
    * Find a class on the classpath (or die trying)
-   *
+   * 根据全限定类名name加载该类的Class对象
    * @param name - the class to look for
    * @return - the class
    * @throws ClassNotFoundException Duh.
@@ -169,7 +171,7 @@ public class ClassLoaderWrapper {
 
   /*
    * Attempt to load a class from a group of classloaders
-   *
+   * 尝试从类加载器集合中加载给定的类
    * @param name        - the class to load
    * @param classLoader - the group of classloaders to examine
    * @return the class
@@ -182,7 +184,7 @@ public class ClassLoaderWrapper {
       if (null != cl) {
 
         try {
-
+          // 加载该类到虚拟机，并类初始化，静态（变量，方法，代码块）初始化
           Class<?> c = Class.forName(name, true, cl);
 
           if (null != c) {
@@ -201,13 +203,18 @@ public class ClassLoaderWrapper {
 
   }
 
+  /**
+   * 获取类加载数组
+   * @param classLoader
+   * @return
+   */
   ClassLoader[] getClassLoaders(ClassLoader classLoader) {
     return new ClassLoader[]{
-        classLoader,
-        defaultClassLoader,
-        Thread.currentThread().getContextClassLoader(),
-        getClass().getClassLoader(),
-        systemClassLoader};
+        classLoader,// 给定的类加载
+        defaultClassLoader,// 默认类加载器
+        Thread.currentThread().getContextClassLoader(), // 当前线程上线文设置的类加载器
+        getClass().getClassLoader(),// 当前类使用的类加载器
+        systemClassLoader};// /系统类加载器
   }
 
 }

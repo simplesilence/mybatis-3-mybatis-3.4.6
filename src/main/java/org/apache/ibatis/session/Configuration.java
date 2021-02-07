@@ -150,7 +150,7 @@ public class Configuration {
   protected final MapperRegistry mapperRegistry = new MapperRegistry(this);
   protected final InterceptorChain interceptorChain = new InterceptorChain();
   protected final TypeHandlerRegistry typeHandlerRegistry = new TypeHandlerRegistry();
-  // 存储实体别名的map集合
+  // 存储别名（JDK内置常用，mybatis内置常用，以及我们配置文件中定义的）的map集合
   protected final TypeAliasRegistry typeAliasRegistry = new TypeAliasRegistry();
   protected final LanguageDriverRegistry languageRegistry = new LanguageDriverRegistry();
 
@@ -180,6 +180,9 @@ public class Configuration {
     this.environment = environment;
   }
 
+  /**
+   * 构造方法，初始化别名
+   */
   public Configuration() {
     typeAliasRegistry.registerAlias("JDBC", JdbcTransactionFactory.class);
     typeAliasRegistry.registerAlias("MANAGED", ManagedTransactionFactory.class);

@@ -39,6 +39,9 @@ public class TypeAliasRegistry {
 
   private final Map<String, Class<?>> TYPE_ALIASES = new HashMap<String, Class<?>>();
 
+  /**
+   * 初始化JDK内部常用类的别名
+   */
   public TypeAliasRegistry() {
     registerAlias("string", String.class);
 
@@ -100,6 +103,12 @@ public class TypeAliasRegistry {
     registerAlias("ResultSet", ResultSet.class);
   }
 
+  /**
+   * 根据别名获取Class对象，如果不存在Resources.classForName一个
+   * @param string
+   * @param <T>
+   * @return
+   */
   @SuppressWarnings("unchecked")
   // throws class cast exception as well if types cannot be assigned
   public <T> Class<T> resolveAlias(String string) {
