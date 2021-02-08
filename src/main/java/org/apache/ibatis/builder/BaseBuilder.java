@@ -35,9 +35,11 @@ import org.apache.ibatis.type.TypeHandlerRegistry;
  */
 public abstract class BaseBuilder {
 
-  // Configuration
+  // Configuration，用于存放mybatis整体环境的容器
   protected final Configuration configuration;
+  // 别名映射容器
   protected final TypeAliasRegistry typeAliasRegistry;
+  // 类型映射转换处理容器
   protected final TypeHandlerRegistry typeHandlerRegistry;
 
   public BaseBuilder(Configuration configuration) {

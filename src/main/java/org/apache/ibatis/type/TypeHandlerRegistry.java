@@ -442,7 +442,11 @@ public final class TypeHandlerRegistry {
   }
 
   // scan
-
+  /**
+   * 扫描包下的类型转换器
+   * 配置包扫描的类型转换器需要在自定义类型转换器类上使用@MappedTypes和@MappedJdbcTypes注解配置javaType和jdbcType
+   * @param packageName
+   */
   public void register(String packageName) {
     ResolverUtil<Class<?>> resolverUtil = new ResolverUtil<Class<?>>();
     resolverUtil.find(new ResolverUtil.IsA(TypeHandler.class), packageName);

@@ -35,25 +35,38 @@ import org.apache.ibatis.logging.LogFactory;
 public abstract class VFS {
   private static final Log log = LogFactory.getLog(VFS.class);
 
-  /** The built-in implementations. */
+  /**
+   * The built-in implementations.
+   * mybatis内置VFS的实现者
+   */
   public static final Class<?>[] IMPLEMENTATIONS = { JBoss6VFS.class, DefaultVFS.class };
 
-  /** The list to which implementations are added by {@link #addImplClass(Class)}. */
+  /**
+   * The list to which implementations are added by {@link #addImplClass(Class)}.
+   * 用户自定义的VFS实现者
+   */
   public static final List<Class<? extends VFS>> USER_IMPLEMENTATIONS = new ArrayList<Class<? extends VFS>>();
 
-  /** Singleton instance holder. */
+  /** Singleton instance holder. 一个单例的VFS持有者 */
   private static class VFSHolder {
     static final VFS INSTANCE = createVFS();
 
+    /**
+     * 创建一个VFS实例
+     * @return
+     */
     @SuppressWarnings("unchecked")
     static VFS createVFS() {
       // Try the user implementations first, then the built-ins
+      // impls存入内置的和用户自定义的VFS实现者
       List<Class<? extends VFS>> impls = new ArrayList<Class<? extends VFS>>();
       impls.addAll(USER_IMPLEMENTATIONS);
       impls.addAll(Arrays.asList((Class<? extends VFS>[]) IMPLEMENTATIONS));
 
       // Try each implementation class until a valid one is found
       VFS vfs = null;
+      // 遍历有效的VFS实现者，先从用户自定义的VFS实现者开始，如果没有，
+      // 就默认使用DefaultVFS，因为DefaultVFS的isValid默认返回true，当然也可以配置JBoss6VFS的valid
       for (int i = 0; vfs == null || !vfs.isValid(); i++) {
         Class<? extends VFS> impl = impls.get(i);
         try {
@@ -201,6 +214,7 @@ public abstract class VFS {
    */
   public List<String> list(String path) throws IOException {
     List<String> names = new ArrayList<String>();
+    // 列出path下的所有resource资源
     for (URL url : getResources(path)) {
       names.addAll(list(url, path));
     }

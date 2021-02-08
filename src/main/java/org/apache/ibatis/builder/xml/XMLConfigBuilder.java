@@ -233,6 +233,10 @@ public class XMLConfigBuilder extends BaseBuilder {
        * 自定义类型转换器，系统内置的org.apache.ibatis.type包下已经足够我们用了，特殊情况下使用
        *  <!--类型处理器 -->
        *  <typeHandlers>
+       *    <package name="com.demo.handlers"/>
+       *  </typeHandlers>
+       * 或
+       *  <typeHandlers>
        *      <!-- 注册自定义handler，说明它作用的jdbcType和javaType -->
        *      <typeHandler jdbcType="VARCHAR" javaType="date" handler="com.daily.handler.MyDateHandler" />
        *  </typeHandlers>
@@ -557,26 +561,37 @@ public class XMLConfigBuilder extends BaseBuilder {
     throw new BuilderException("Environment declaration requires a DataSourceFactory.");
   }
 
+  /**
+   * <typeHandlers/>标签解析
+   * @param parent
+   * @throws Exception
+   */
   private void typeHandlerElement(XNode parent) throws Exception {
     if (parent != null) {
       for (XNode child : parent.getChildren()) {
         if ("package".equals(child.getName())) {
           String typeHandlerPackage = child.getStringAttribute("name");
+          // 扫描包下的typeHandler到typeHandlerRegistry容器
           typeHandlerRegistry.register(typeHandlerPackage);
         } else {
+          // 解析typeHandler标签的属性
           String javaTypeName = child.getStringAttribute("javaType");
           String jdbcTypeName = child.getStringAttribute("jdbcType");
           String handlerTypeName = child.getStringAttribute("handler");
+          // 解析属性值为对应的类型
           Class<?> javaTypeClass = resolveClass(javaTypeName);
           JdbcType jdbcType = resolveJdbcType(jdbcTypeName);
           Class<?> typeHandlerClass = resolveClass(handlerTypeName);
           if (javaTypeClass != null) {
+            // javaTypeClass typeHandlerClass
             if (jdbcType == null) {
               typeHandlerRegistry.register(javaTypeClass, typeHandlerClass);
             } else {
+              // javaTypeClass jdbcType typeHandlerClass
               typeHandlerRegistry.register(javaTypeClass, jdbcType, typeHandlerClass);
             }
           } else {
+            // 只有typeHandlerClass
             typeHandlerRegistry.register(typeHandlerClass);
           }
         }
@@ -615,6 +630,11 @@ public class XMLConfigBuilder extends BaseBuilder {
     }
   }
 
+  /**
+   * 判断当前使用的数据源的id和给定参数的是否一致
+   * @param id
+   * @return
+   */
   private boolean isSpecifiedEnvironment(String id) {
     if (environment == null) {
       throw new BuilderException("No environment specified.");

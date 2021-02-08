@@ -89,6 +89,7 @@ public class ResolverUtil<T> {
     /** Returns true if type is assignable to the parent type supplied in the constructor. */
     @Override
     public boolean matches(Class<?> type) {
+      // isAssignableFrom监测type是否是parent的子类或子接口
       return type != null && parent.isAssignableFrom(type);
     }
 
@@ -218,8 +219,10 @@ public class ResolverUtil<T> {
     String path = getPackagePath(packageName);
 
     try {
+      // 列出路径下的所有可访问资源
       List<String> children = VFS.getInstance().list(path);
       for (String child : children) {
+        // 只要class文件
         if (child.endsWith(".class")) {
           addIfMatching(test, child);
         }
