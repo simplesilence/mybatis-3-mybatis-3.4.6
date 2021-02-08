@@ -441,6 +441,7 @@ public class XMLConfigBuilder extends BaseBuilder {
 
   /**
    * 解析environments标签
+   * 注意：mybatis支持定义多数据源，并不支持多数据源切换使用，之所以可以配置多个，是为了测试和生产环境容易切换
    * @param context
    * @throws Exception
    */
@@ -472,21 +473,41 @@ public class XMLConfigBuilder extends BaseBuilder {
     }
   }
 
+  /**
+   * <databaseIdProvider/>标签解析
+   * 该标签定义常用的数据库。
+   * mybatis可以根据select | insert | update | delete标签定义的databaseId来决定sql的兼容性，可以把sql解析为对应厂商的能识别的sql语句
+   * 注意：数据库厂商name值是固定的，不能瞎写，具体在mybatis官网查看，也可通过使用DatabaseMetaData来查看
+   *    <!--数据库厂商标示 -->
+   *    <databaseIdProvider type="DB_VENDOR">
+   *         <property name="Oracle" value="oracle"/>
+   *         <property name="MySQL" value="mysql"/>
+   *         <property name="DB2" value="d2"/>
+   *         <property name="PostgreSQL" value="pg"/>
+   *     </databaseIdProvider>
+   * @param context
+   * @throws Exception
+   */
   private void databaseIdProviderElement(XNode context) throws Exception {
     DatabaseIdProvider databaseIdProvider = null;
     if (context != null) {
       String type = context.getStringAttribute("type");
       // awful patch to keep backward compatibility
+      // VENDOR 兼容写法
       if ("VENDOR".equals(type)) {
           type = "DB_VENDOR";
       }
+      // 构建DatabaseIdProvider并设置属性
       Properties properties = context.getChildrenAsProperties();
       databaseIdProvider = (DatabaseIdProvider) resolveClass(type).newInstance();
       databaseIdProvider.setProperties(properties);
     }
+    // 获取当前使用的数据源
     Environment environment = configuration.getEnvironment();
     if (environment != null && databaseIdProvider != null) {
+      // 获取当前数据源使用的那种数据库厂商ID
       String databaseId = databaseIdProvider.getDatabaseId(environment.getDataSource());
+      // 配置当前数据源默认使用的厂商标识ID
       configuration.setDatabaseId(databaseId);
     }
   }

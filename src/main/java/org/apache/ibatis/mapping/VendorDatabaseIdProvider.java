@@ -34,7 +34,7 @@ import org.apache.ibatis.logging.LogFactory;
  * key="Microsoft SQL Server", value="ms" will return "ms" 
  * It can return null, if no database product name or 
  * a properties was specified and no translation was found 
- * 
+ * 数据库厂商ID提供者
  * @author Eduardo Macarron
  */
 public class VendorDatabaseIdProvider implements DatabaseIdProvider {
@@ -61,6 +61,13 @@ public class VendorDatabaseIdProvider implements DatabaseIdProvider {
     this.properties = p;
   }
 
+  /**
+   * 根据当前环境的数据源获取数据库厂商的ID标识
+   * 如果配置有数据库别名，返回别名，别名中不存在返回null
+   * @param dataSource
+   * @return
+   * @throws SQLException
+   */
   private String getDatabaseName(DataSource dataSource) throws SQLException {
     String productName = getDatabaseProductName(dataSource);
     if (this.properties != null) {
@@ -79,7 +86,9 @@ public class VendorDatabaseIdProvider implements DatabaseIdProvider {
     Connection con = null;
     try {
       con = dataSource.getConnection();
+      // 通过Connection能够获取数据库元信息
       DatabaseMetaData metaData = con.getMetaData();
+      // 数据库元信息能拿到数据库厂商的产品名
       return metaData.getDatabaseProductName();
     } finally {
       if (con != null) {

@@ -41,6 +41,7 @@ public class TypeAliasRegistry {
 
   /**
    * 初始化JDK内部常用类的别名
+   * 在Configuration中初始化了mybatis内置的一些类的别名
    */
   public TypeAliasRegistry() {
     registerAlias("string", String.class);
