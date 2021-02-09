@@ -137,7 +137,7 @@ public class XMLConfigBuilder extends BaseBuilder {
 
   /**
    * 解析mybatis配置文件中的所有标签
-   * 请对照mybatis详细的配置文件 网上找了一个比较全的：https://www.cnblogs.com/wangjiming/p/10399320.html
+   * 请对照mybatis详细的配置文件 官方配置：https://mybatis.org/mybatis-3/zh/configuration.html
    * @param root
    */
   private void parseConfiguration(XNode root) {
@@ -599,15 +599,50 @@ public class XMLConfigBuilder extends BaseBuilder {
     }
   }
 
+  /**
+   * mappers标签解析，对应我们自己写的mapper映射文件
+   * 以下这三点很重要：
+   *    1.在注册映射文件时使用<package name="包名">标签时，需要映射文件名和接口名一样，不然会报错。
+   *    2.在注册映射文件时使用<mapper class="">mapper标签的class属性时，需要映射文件名和接口名一样，不然会报错。
+   *    3.在注册映射文件时使用<mapper resource="org/xx/demo/mapper/xx.xml"/>，不需要映射文件名和接口名一样。
+   *      在和spring集成的时候，配置SqlSessionFactoryBean的mapperLocations是mapper.xml文件，所以mapper文件地址和接口可以不在同一包下
+   * @param parent
+   * @throws Exception
+   */
   private void mapperElement(XNode parent) throws Exception {
     if (parent != null) {
       for (XNode child : parent.getChildren()) {
         if ("package".equals(child.getName())) {
+          /**
+           * 注意：根据包名扫描接口，不是mapper.xml文件
+           * <!-- 将包内的映射器接口实现全部注册为映射器 -->
+           * <mappers>
+           *   <package name="org.mybatis.builder"/>
+           * </mappers>
+           */
           String mapperPackage = child.getStringAttribute("name");
           configuration.addMappers(mapperPackage);
         } else {
+          /**
+           * <!-- 使用相对于类路径的资源引用 -->
+           * <mappers>
+           *    <mapper resource="org/mybatis/builder/AuthorMapper.xml"/>
+           * </mappers>
+           */
           String resource = child.getStringAttribute("resource");
+          /**
+           * <!-- 使用完全限定资源定位符（URL） -->
+           * <mappers>
+           *    <mapper url="file:///var/mappers/AuthorMapper.xml"/>
+           * </mappers>
+           */
           String url = child.getStringAttribute("url");
+          /**
+           * <!-- 使用映射器接口实现类的完全限定类名 -->
+           * <mappers>
+           *    <mapper class="org.mybatis.builder.AuthorMapper"/>
+           * </mappers>
+           */
           String mapperClass = child.getStringAttribute("class");
           if (resource != null && url == null && mapperClass == null) {
             ErrorContext.instance().resource(resource);

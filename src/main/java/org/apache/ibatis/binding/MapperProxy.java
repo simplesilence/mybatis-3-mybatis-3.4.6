@@ -28,6 +28,7 @@ import org.apache.ibatis.reflection.ExceptionUtil;
 import org.apache.ibatis.session.SqlSession;
 
 /**
+ * Mapper接口代理的Handler
  * @author Clinton Begin
  * @author Eduardo Macarron
  */

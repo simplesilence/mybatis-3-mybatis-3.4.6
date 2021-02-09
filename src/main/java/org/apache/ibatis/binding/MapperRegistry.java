@@ -57,17 +57,25 @@ public class MapperRegistry {
     return knownMappers.containsKey(type);
   }
 
+  /**
+   * 处理每个mapper接口文件
+   * @param type
+   * @param <T>
+   */
   public <T> void addMapper(Class<T> type) {
+    // mapper必须是接口
     if (type.isInterface()) {
       if (hasMapper(type)) {
         throw new BindingException("Type " + type + " is already known to the MapperRegistry.");
       }
+      // 是否加载完成标识
       boolean loadCompleted = false;
       try {
         knownMappers.put(type, new MapperProxyFactory<T>(type));
         // It's important that the type is added before the parser is run
         // otherwise the binding may automatically be attempted by the
         // mapper parser. If the type is already known, it won't try.
+        // 把当前接口封装一层为MapperAnnotationBuilder，实质上该类也解析了对应的mapper.xml文件（如果mapper.xml的全限定类名和接口一致）
         MapperAnnotationBuilder parser = new MapperAnnotationBuilder(config, type);
         parser.parse();
         loadCompleted = true;
@@ -87,13 +95,17 @@ public class MapperRegistry {
   }
 
   /**
+   * 根据包名获取所有class文件，也就是mapper接口
    * @since 3.2.2
    */
   public void addMappers(String packageName, Class<?> superType) {
     ResolverUtil<Class<?>> resolverUtil = new ResolverUtil<Class<?>>();
+    // 获取packageName下所有的class文件，并存入matches集合
     resolverUtil.find(new ResolverUtil.IsA(superType), packageName);
+    // 从matches的Set集合中获取所有class文件的Class对象
     Set<Class<? extends Class<?>>> mapperSet = resolverUtil.getClasses();
     for (Class<?> mapperClass : mapperSet) {
+      // 存入knownMappers
       addMapper(mapperClass);
     }
   }

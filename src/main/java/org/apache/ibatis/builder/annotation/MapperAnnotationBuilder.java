@@ -90,6 +90,7 @@ import org.apache.ibatis.type.TypeHandler;
 import org.apache.ibatis.type.UnknownTypeHandler;
 
 /**
+ * mapper注解@Select、@Update，@Insert，@Delete 的建造者Builder
  * @author Clinton Begin
  */
 public class MapperAnnotationBuilder {
@@ -118,9 +119,15 @@ public class MapperAnnotationBuilder {
     sqlProviderAnnotationTypes.add(DeleteProvider.class);
   }
 
+  /**
+   * 解析mapper接口
+   */
   public void parse() {
+    // 该接口的toString
     String resource = type.toString();
+    // 该接口对应的xml文件是否被加载过
     if (!configuration.isResourceLoaded(resource)) {
+      // 加载和当前type接口路径完全一样的xml文件
       loadXmlResource();
       configuration.addLoadedResource(resource);
       assistant.setCurrentNamespace(type.getName());
@@ -138,6 +145,7 @@ public class MapperAnnotationBuilder {
         }
       }
     }
+    // 如果已被加载或是没有mapper.xml对应的文件
     parsePendingMethods();
   }
 
@@ -156,10 +164,14 @@ public class MapperAnnotationBuilder {
     }
   }
 
+  /**
+   * 加载和当前type接口路径完全一致的 mapper.xml文件
+   */
   private void loadXmlResource() {
     // Spring may not know the real resource name so we check a flag
     // to prevent loading again a resource twice
     // this flag is set at XMLMapperBuilder#bindMapperForNamespace
+    // 如果当前xml文件没有被加载过
     if (!configuration.isResourceLoaded("namespace:" + type.getName())) {
       String xmlResource = type.getName().replace('.', '/') + ".xml";
       InputStream inputStream = null;
@@ -169,7 +181,9 @@ public class MapperAnnotationBuilder {
         // ignore, resource is not required
       }
       if (inputStream != null) {
+        // 构建XMLMapperBuilder
         XMLMapperBuilder xmlParser = new XMLMapperBuilder(inputStream, assistant.getConfiguration(), xmlResource, configuration.getSqlFragments(), type.getName());
+        // 解析mapper.xml文件
         xmlParser.parse();
       }
     }
