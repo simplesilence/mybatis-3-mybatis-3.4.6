@@ -48,6 +48,7 @@ import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.TypeHandler;
 
 /**
+ * Mapper xml 文件建造者
  * @author Clinton Begin
  */
 public class XMLMapperBuilder extends BaseBuilder {
@@ -74,6 +75,13 @@ public class XMLMapperBuilder extends BaseBuilder {
     this.builderAssistant.setCurrentNamespace(namespace);
   }
 
+  /**
+   * 构造
+   * @param inputStream mapper.xml文件流
+   * @param configuration configuration
+   * @param resource mapper.xml文件classpath路径
+   * @param sqlFragments
+   */
   public XMLMapperBuilder(InputStream inputStream, Configuration configuration, String resource, Map<String, XNode> sqlFragments) {
     this(new XPathParser(inputStream, true, configuration.getVariables(), new XMLMapperEntityResolver()),
         configuration, resource, sqlFragments);

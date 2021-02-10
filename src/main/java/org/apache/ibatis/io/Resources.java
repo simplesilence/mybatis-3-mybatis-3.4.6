@@ -91,7 +91,7 @@ public class Resources {
 
   /*
    * Returns a resource on the classpath as a Stream object
-   *
+   * 从classpath下加载资源
    * @param resource The resource to find
    * @return The resource
    * @throws java.io.IOException If the resource cannot be found or read

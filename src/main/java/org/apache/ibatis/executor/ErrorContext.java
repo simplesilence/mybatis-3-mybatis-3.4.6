@@ -16,14 +16,23 @@
 package org.apache.ibatis.executor;
 
 /**
+ * mybatis中错误信息上线文
  * @author Clinton Begin
  */
 public class ErrorContext {
 
+  // 获取当前操作系统的换行符，如果没有默认使用\n
   private static final String LINE_SEPARATOR = System.getProperty("line.separator","\n");
+  /**
+   * 注意，我们一般使用ThreadLocal都是用常量修饰，即使不用final，至少也得用static修饰
+   * 这样才能做到线程间的数据相互隔离
+   * ErrorContext线程间的隔离
+   */
+
   private static final ThreadLocal<ErrorContext> LOCAL = new ThreadLocal<ErrorContext>();
 
   private ErrorContext stored;
+  // 设置错误信息要拼接的资源
   private String resource;
   private String activity;
   private String object;
