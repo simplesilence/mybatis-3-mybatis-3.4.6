@@ -95,8 +95,13 @@ public class XMLMapperBuilder extends BaseBuilder {
     this.resource = resource;
   }
 
+  /**
+   * mapper.xml文件解析一览
+   */
   public void parse() {
+    // mapper是否已经解析
     if (!configuration.isResourceLoaded(resource)) {
+      // 从根节点<mapper/> 开始解析
       configurationElement(parser.evalNode("/mapper"));
       configuration.addLoadedResource(resource);
       bindMapperForNamespace();
@@ -111,12 +116,18 @@ public class XMLMapperBuilder extends BaseBuilder {
     return sqlFragments.get(refid);
   }
 
+  /**
+   * 解析mapper文件的各个二级节点
+   * @param context
+   */
   private void configurationElement(XNode context) {
     try {
+      // 获取命名空间的值
       String namespace = context.getStringAttribute("namespace");
       if (namespace == null || namespace.equals("")) {
         throw new BuilderException("Mapper's namespace cannot be empty");
       }
+      // 设置当前命名空间
       builderAssistant.setCurrentNamespace(namespace);
       cacheRefElement(context.evalNode("cache-ref"));
       cacheElement(context.evalNode("cache"));

@@ -109,10 +109,20 @@ public class XNode {
     return xpathParser.evalDouble(node, expression);
   }
 
+  /**
+   * 解析多级标签
+   * @param expression
+   * @return
+   */
   public List<XNode> evalNodes(String expression) {
     return xpathParser.evalNodes(node, expression);
   }
 
+  /**
+   * 解析单级标签
+   * @param expression
+   * @return
+   */
   public XNode evalNode(String expression) {
     return xpathParser.evalNode(node, expression);
   }

@@ -50,11 +50,14 @@ import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.TypeHandler;
 
 /**
+ * Mapper文件建造者助手
  * @author Clinton Begin
  */
 public class MapperBuilderAssistant extends BaseBuilder {
 
+  // 当前mapper文件的命名空间接口
   private String currentNamespace;
+  // 当前mapper文件的classpath路径或url
   private final String resource;
   private Cache currentCache;
   private boolean unresolvedCacheRef; // issue #676
