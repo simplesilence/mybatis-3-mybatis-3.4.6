@@ -130,6 +130,12 @@ public class XMLMapperBuilder extends BaseBuilder {
       if (namespace == null || namespace.equals("")) {
         throw new BuilderException("Mapper's namespace cannot be empty");
       }
+      /**
+       * 这里注意一个细节，为什么cache-ref要在cache之前解析
+       * 我想是因为怕同一个mapper文件的命名空间被多个其他的mapper文件的cache-ref引用，
+       * 这样在解析cache-ref的时候，找到了对应的Cache实例，会设置currentCache就会把当前mapper自定义的cache标签设置的缓存实例覆盖掉，
+       * 当前文件的cache标签指定的缓存实例优先级高。
+       */
       // 设置当前命名空间
       builderAssistant.setCurrentNamespace(namespace);
       // 解析cache-ref标签
@@ -213,13 +219,24 @@ public class XMLMapperBuilder extends BaseBuilder {
     }
   }
 
+  /**
+   * cache-ref标签解析，我称之为引用二级缓存
+   * 注意二级缓存是mapper.xml级的，缓存的是结果，所以在另一个mapper文件中涉及到增删改，会清掉当前缓存的select的结果集
+   * 该标签配置另一个xml文件的命名空间
+   * 表示在另一个xml文件中执行sql时可以共用当前二级缓存
+   * 就是说在执行另一个mapper里的sql语句是，也会到到
+   * @param context
+   */
   private void cacheRefElement(XNode context) {
     if (context != null) {
+      // 把当前文件的命名空间和ref引用的mapper文件命名空间映射在一起，存入Configuration的cacheRefMap中
       configuration.addCacheRef(builderAssistant.getCurrentNamespace(), context.getStringAttribute("namespace"));
+      // 引用缓存解析器
       CacheRefResolver cacheRefResolver = new CacheRefResolver(builderAssistant, context.getStringAttribute("namespace"));
       try {
         cacheRefResolver.resolveCacheRef();
       } catch (IncompleteElementException e) {
+        // 这一步比较重要，如果在缓存中没找到当前命名空间所对应的缓存，则添加到incompleteCacheRefs链表中待解析
         configuration.addIncompleteCacheRef(cacheRefResolver);
       }
     }

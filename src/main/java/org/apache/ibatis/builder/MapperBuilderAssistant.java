@@ -62,6 +62,7 @@ public class MapperBuilderAssistant extends BaseBuilder {
   private final String resource;
   // 当前所使用的缓存
   private Cache currentCache;
+  // 是否未解析存在引用缓存cache-ref标签的值
   private boolean unresolvedCacheRef; // issue #676
 
   public MapperBuilderAssistant(Configuration configuration, String resource) {
@@ -108,16 +109,25 @@ public class MapperBuilderAssistant extends BaseBuilder {
     return currentNamespace + "." + base;
   }
 
+  /**
+   * 解析引用缓存 cache-ref
+   * @param namespace 引用缓存的命名空间
+   * @return
+   */
   public Cache useCacheRef(String namespace) {
     if (namespace == null) {
       throw new BuilderException("cache-ref element requires a namespace attribute.");
     }
     try {
+      // 设置未解析引用标签flag为true
       unresolvedCacheRef = true;
+      // 在Configuration的缓存中未找到当前引用的命名空间所对应的缓存对象抛出异常，这里抛异常的可能性是很大的，但是没关系
+      // 当前catch会捕获，再抛出，在caller上一步调用会捕获处理
       Cache cache = configuration.getCache(namespace);
       if (cache == null) {
         throw new IncompleteElementException("No cache for namespace '" + namespace + "' could be found.");
       }
+      // 找到了，设置为当前缓存
       currentCache = cache;
       unresolvedCacheRef = false;
       return cache;
