@@ -35,6 +35,7 @@ import org.apache.ibatis.reflection.MetaObject;
 import org.apache.ibatis.reflection.SystemMetaObject;
 
 /**
+ * mybatis缓存对象建造者
  * @author Clinton Begin
  */
 public class CacheBuilder {
@@ -89,16 +90,23 @@ public class CacheBuilder {
     return this;
   }
 
+  /**
+   * 建造缓存对象
+   * @return
+   */
   public Cache build() {
+    // 这步看似啰嗦，实际为了严禁，所以再次进行判断
     setDefaultImplementations();
     Cache cache = newBaseCacheInstance(implementation, id);
     setCacheProperties(cache);
     // issue #352, do not apply decorators to custom caches
     if (PerpetualCache.class.equals(cache.getClass())) {
+      // 对PerpetualCache多层自定义装饰
       for (Class<? extends Cache> decorator : decorators) {
         cache = newCacheDecoratorInstance(decorator, cache);
         setCacheProperties(cache);
       }
+      // 设置mybatis内置的标准装饰
       cache = setStandardDecorators(cache);
     } else if (!LoggingCache.class.isAssignableFrom(cache.getClass())) {
       cache = new LoggingCache(cache);
@@ -139,12 +147,18 @@ public class CacheBuilder {
     }
   }
 
+  /**
+   * 设置缓存对象的属性
+   * @param cache
+   */
   private void setCacheProperties(Cache cache) {
     if (properties != null) {
+      // 构建缓存对象的元信息
       MetaObject metaCache = SystemMetaObject.forObject(cache);
       for (Map.Entry<Object, Object> entry : properties.entrySet()) {
         String name = (String) entry.getKey();
         String value = (String) entry.getValue();
+        // 判断property配置项是否属于是指定缓存对象的属性
         if (metaCache.hasSetter(name)) {
           Class<?> type = metaCache.getSetterType(name);
           if (String.class == type) {

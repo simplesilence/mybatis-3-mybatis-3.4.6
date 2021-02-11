@@ -51,6 +51,7 @@ import org.apache.ibatis.type.TypeHandler;
 
 /**
  * Mapper文件建造者助手
+ * 主要配合XMLMapperBuilder类中解析mapper.xml文件时使用
  * @author Clinton Begin
  */
 public class MapperBuilderAssistant extends BaseBuilder {
@@ -59,6 +60,7 @@ public class MapperBuilderAssistant extends BaseBuilder {
   private String currentNamespace;
   // 当前mapper文件的classpath路径或url
   private final String resource;
+  // 当前所使用的缓存
   private Cache currentCache;
   private boolean unresolvedCacheRef; // issue #676
 
@@ -124,6 +126,17 @@ public class MapperBuilderAssistant extends BaseBuilder {
     }
   }
 
+  /**
+   * 配置使用二级缓存或自定义缓存
+   * @param typeClass 使用的缓存Class对象
+   * @param evictionClass 回收策略Class对象
+   * @param flushInterval 配置一定时间自动刷新缓存，单位是毫秒。
+   * @param size 最多缓存对象的个数。
+   * @param readWrite 是否只读，若配置可读写，则需要对应的实体类能够序列化。
+   * @param blocking 若缓存中找不到对应的key，是否会一直blocking，直到有对应的数据进入缓存。
+   * @param props 自定义属性
+   * @return
+   */
   public Cache useNewCache(Class<? extends Cache> typeClass,
       Class<? extends Cache> evictionClass,
       Long flushInterval,
@@ -132,7 +145,9 @@ public class MapperBuilderAssistant extends BaseBuilder {
       boolean blocking,
       Properties props) {
     Cache cache = new CacheBuilder(currentNamespace)
+            // 设置使用的缓存对象，默认使用PerpetualCache
         .implementation(valueOrDefault(typeClass, PerpetualCache.class))
+            // 设置缓存回收策略对象，默认使用LruCache
         .addDecorator(valueOrDefault(evictionClass, LruCache.class))
         .clearInterval(flushInterval)
         .size(size)
@@ -140,6 +155,7 @@ public class MapperBuilderAssistant extends BaseBuilder {
         .blocking(blocking)
         .properties(props)
         .build();
+    // 添加构建出的缓存对象
     configuration.addCache(cache);
     currentCache = cache;
     return cache;

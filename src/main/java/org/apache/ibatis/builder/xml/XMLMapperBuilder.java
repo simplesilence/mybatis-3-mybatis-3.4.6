@@ -49,6 +49,7 @@ import org.apache.ibatis.type.TypeHandler;
 
 /**
  * Mapper xml 文件建造者
+ * 该类主要职责是用来解析mapper.xml文件
  * @author Clinton Begin
  */
 public class XMLMapperBuilder extends BaseBuilder {
@@ -103,7 +104,9 @@ public class XMLMapperBuilder extends BaseBuilder {
     if (!configuration.isResourceLoaded(resource)) {
       // 从根节点<mapper/> 开始解析
       configurationElement(parser.evalNode("/mapper"));
+      // 将当前资源放入已解析资源的集合中
       configuration.addLoadedResource(resource);
+      // 绑定当前mapper.xml通过namespace
       bindMapperForNamespace();
     }
 
@@ -129,11 +132,18 @@ public class XMLMapperBuilder extends BaseBuilder {
       }
       // 设置当前命名空间
       builderAssistant.setCurrentNamespace(namespace);
+      // 解析cache-ref标签
       cacheRefElement(context.evalNode("cache-ref"));
+      // 解析cache标签
       cacheElement(context.evalNode("cache"));
+      // 该标签已废弃，在未来的版本中会移除。
+      // 参数映射标签，和resultMap用法差不多，resultMap映射结果集，parameterMap映射参数
       parameterMapElement(context.evalNodes("/mapper/parameterMap"));
+      // 解析resultMap标签
       resultMapElements(context.evalNodes("/mapper/resultMap"));
+      // 解析sql标签
       sqlElement(context.evalNodes("/mapper/sql"));
+      // 解析select|insert|update|delete标签
       buildStatementFromContext(context.evalNodes("select|insert|update|delete"));
     } catch (Exception e) {
       throw new BuilderException("Error parsing Mapper XML. The XML location is '" + resource + "'. Cause: " + e, e);
@@ -215,9 +225,20 @@ public class XMLMapperBuilder extends BaseBuilder {
     }
   }
 
+  /**
+   * cache标签
+   * 设置此标签表示开启mybatis二级缓存
+   * 关于二级缓存的使用和一级缓存的分析，参考 https://www.jianshu.com/p/c553169c5921
+   * 和 https://tech.meituan.com/2018/01/19/mybatis-cache.html 两篇文章都是同一个人写的
+   * 二级缓存是针对xml文件中定义的语句进行缓存所有select语句结果，如果改文件中的增删改调用，则会刷新缓存
+   * @param context
+   * @throws Exception
+   */
   private void cacheElement(XNode context) throws Exception {
     if (context != null) {
+      // 获取cache标签上的各种属性值
       String type = context.getStringAttribute("type", "PERPETUAL");
+      // 没有自定义缓存，默认使用PerpetualCache缓存
       Class<? extends Cache> typeClass = typeAliasRegistry.resolveAlias(type);
       String eviction = context.getStringAttribute("eviction", "LRU");
       Class<? extends Cache> evictionClass = typeAliasRegistry.resolveAlias(eviction);
@@ -225,7 +246,9 @@ public class XMLMapperBuilder extends BaseBuilder {
       Integer size = context.getIntAttribute("size");
       boolean readWrite = !context.getBooleanAttribute("readOnly", false);
       boolean blocking = context.getBooleanAttribute("blocking", false);
+      // 把子标签转成Properties对象
       Properties props = context.getChildrenAsProperties();
+      // 构建新的缓存对象
       builderAssistant.useNewCache(typeClass, evictionClass, flushInterval, size, readWrite, blocking, props);
     }
   }
