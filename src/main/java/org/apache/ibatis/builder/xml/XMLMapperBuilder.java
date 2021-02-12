@@ -297,6 +297,11 @@ public class XMLMapperBuilder extends BaseBuilder {
     }
   }
 
+  /**
+   * resultMap解析，再熟悉不过的标签了
+   * @param list
+   * @throws Exception
+   */
   private void resultMapElements(List<XNode> list) throws Exception {
     for (XNode resultMapNode : list) {
       try {
@@ -307,10 +312,16 @@ public class XMLMapperBuilder extends BaseBuilder {
     }
   }
 
+  /**
+   * 重载，resultMap标签解析
+   */
   private ResultMap resultMapElement(XNode resultMapNode) throws Exception {
     return resultMapElement(resultMapNode, Collections.<ResultMapping> emptyList());
   }
-
+  /**
+   * 重载，resultMap标签解析
+   * TODO 读到这里，发现自己对mybatis的一些使用还不够熟悉，主要是很多特性平时也很少用，先花时间阅读一个官网再更
+   */
   private ResultMap resultMapElement(XNode resultMapNode, List<ResultMapping> additionalResultMappings) throws Exception {
     ErrorContext.instance().activity("processing " + resultMapNode.getValueBasedIdentifier());
     String id = resultMapNode.getStringAttribute("id",
@@ -336,6 +347,7 @@ public class XMLMapperBuilder extends BaseBuilder {
         if ("id".equals(resultChild.getName())) {
           flags.add(ResultFlag.ID);
         }
+        // TODO
         resultMappings.add(buildResultMappingFromContext(resultChild, typeClass, flags));
       }
     }

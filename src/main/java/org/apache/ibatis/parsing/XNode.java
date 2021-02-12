@@ -110,7 +110,7 @@ public class XNode {
   }
 
   /**
-   * 解析多级标签
+   * 解析多个一样的标签，比如一个mapper文件中有多个
    * @param expression
    * @return
    */
