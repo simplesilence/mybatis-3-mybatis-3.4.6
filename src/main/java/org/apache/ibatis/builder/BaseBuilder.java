@@ -30,7 +30,7 @@ import org.apache.ibatis.type.TypeHandlerRegistry;
 
 /**
  * 建造者基类
- *
+ * 该类存放了所有建造者子类统一使用的一些容器属性
  * @author Clinton Begin
  */
 public abstract class BaseBuilder {

@@ -32,10 +32,15 @@ import org.w3c.dom.NodeList;
  */
 public class XNode {
 
+  // 节点对象
   private final Node node;
+  // 节点名字
   private final String name;
+  // 节点body内容
   private final String body;
+  // 节点所有的属性键值对集合
   private final Properties attributes;
+  // 配置文件中的properties
   private final Properties variables;
   private final XPathParser xpathParser;
 

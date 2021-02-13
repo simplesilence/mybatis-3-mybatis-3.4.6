@@ -48,7 +48,7 @@ import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.TypeHandler;
 
 /**
- * xml解析器，封装了XPathParser
+ * mybatis-config配置文件建造者，有xml解析器等，封装了XPathParser
  *
  * @author Clinton Begin
  * @author Kazuki Shimizu
@@ -446,6 +446,7 @@ public class XMLConfigBuilder extends BaseBuilder {
   /**
    * 解析environments标签
    * 注意：mybatis支持定义多数据源，并不支持多数据源切换使用，之所以可以配置多个，是为了测试和生产环境容易切换
+   * 如果想使用多个数据源来回切换，需自己开发为不同的数据源创建不同的sqlSession，参考 https://www.cnblogs.com/chenzhanxun/articles/4654203.html
    * @param context
    * @throws Exception
    */

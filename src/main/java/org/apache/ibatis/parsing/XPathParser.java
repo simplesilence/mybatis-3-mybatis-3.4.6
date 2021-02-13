@@ -41,6 +41,8 @@ import org.xml.sax.SAXParseException;
 
 /**
  * xml解析器工具类
+ * 最主要的是封装了XPath
+ *    XPath：顾名思义，path是路径的意思，XPath就是xml文件基于路径的解析，比如/root/user/name，就是root根标签下的user标签下的name标签
  * @author Clinton Begin
  */
 public class XPathParser {
@@ -48,7 +50,9 @@ public class XPathParser {
   private final Document document;
   private boolean validation;
   private EntityResolver entityResolver;
+  // properties 标签配置的属性
   private Properties variables;
+  // xml基于路径解析
   private XPath xpath;
 
   public XPathParser(String xml) {
@@ -116,8 +120,16 @@ public class XPathParser {
     this.document = createDocument(new InputSource(new StringReader(xml)));
   }
 
+  /**
+   * 构建xPathParser
+   * @param reader mybatis配置文件字符流
+   * @param validation
+   * @param variables
+   * @param entityResolver
+   */
   public XPathParser(Reader reader, boolean validation, Properties variables, EntityResolver entityResolver) {
     commonConstructor(validation, variables, entityResolver);
+    // 把配置文件字符流包装为InputSource，创建一个文档Document对象
     this.document = createDocument(new InputSource(reader));
   }
 
@@ -210,34 +222,48 @@ public class XPathParser {
     return evalNode(document, expression);
   }
 
+  /**
+   * 解析节点，根据xpath的expression表达式
+   * @param root
+   * @param expression
+   * @return
+   */
   public XNode evalNode(Object root, String expression) {
+    // xml中任何一个标签，属性都可以抽象为一个Node节点，常用的实现类有Element（标签对象）和Attr（属性对象）
     Node node = (Node) evaluate(expression, root, XPathConstants.NODE);
     if (node == null) {
       return null;
     }
+    // 包装为XNode
     return new XNode(this, node, variables);
   }
 
   private Object evaluate(String expression, Object root, QName returnType) {
     try {
+      // 根据xpath路径表达式在root标签对象中获取对应节点对象
       return xpath.evaluate(expression, root, returnType);
     } catch (Exception e) {
       throw new BuilderException("Error evaluating XPath.  Cause: " + e, e);
     }
   }
 
+  /**
+   * 根据文件流
+   * @param inputSource
+   * @return
+   */
   private Document createDocument(InputSource inputSource) {
     // important: this must only be called AFTER common constructor
     try {
+      // 文档对象建造者工厂，这里同时使用建造者模式和抽象工厂模式
       DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
       factory.setValidating(validation);
-
       factory.setNamespaceAware(false);
       factory.setIgnoringComments(true);
       factory.setIgnoringElementContentWhitespace(false);
       factory.setCoalescing(false);
       factory.setExpandEntityReferences(true);
-
+      // 文档建造者
       DocumentBuilder builder = factory.newDocumentBuilder();
       builder.setEntityResolver(entityResolver);
       builder.setErrorHandler(new ErrorHandler() {
@@ -255,17 +281,27 @@ public class XPathParser {
         public void warning(SAXParseException exception) throws SAXException {
         }
       });
+      // 构建一个文档对象
       return builder.parse(inputSource);
     } catch (Exception e) {
       throw new BuilderException("Error creating document instance.  Cause: " + e, e);
     }
   }
 
+  /**
+   * 通用构造器
+   * @param validation
+   * @param variables
+   * @param entityResolver
+   */
   private void commonConstructor(boolean validation, Properties variables, EntityResolver entityResolver) {
     this.validation = validation;
     this.entityResolver = entityResolver;
+    // 设置配置文件的properties标签的值
     this.variables = variables;
+    // 这里用的实现类默认是XPathFactoryImpl，不深入研究，是由com.sun.org.apache.xpath.internal.jaxp提供的，被采纳入jdk源码包中
     XPathFactory factory = XPathFactory.newInstance();
+    // 创建一个xpath实例com.sun.org.apache.xpath.internal.jaxp.XPathImpl
     this.xpath = factory.newXPath();
   }
 
