@@ -325,7 +325,7 @@ public class XMLMapperBuilder extends BaseBuilder {
    */
   private ResultMap resultMapElement(XNode resultMapNode, List<ResultMapping> additionalResultMappings) throws Exception {
     ErrorContext.instance().activity("processing " + resultMapNode.getValueBasedIdentifier());
-    // 解析出resultMap的id和type属性
+    // 解析出resultMap的id和type属性，如果是association、collection、case，就用第二种方式getValueBasedIdentifier设置一个特殊id值，type也是一样
     String id = resultMapNode.getStringAttribute("id",
         resultMapNode.getValueBasedIdentifier());
     String type = resultMapNode.getStringAttribute("type",
@@ -462,8 +462,7 @@ public class XMLMapperBuilder extends BaseBuilder {
     String jdbcType = context.getStringAttribute("jdbcType");
     String nestedSelect = context.getStringAttribute("select");
     // 该标签的resultMap属性，一般为association，collection、case标签才有，
-    // 注意：resultMap属性和select属性只能存在一个，不然没法映射，
-    // 这里先获取resultMap属性，不存在设置为select对应的resultMap的id值
+    // 注意：resultMap属性和select属性只能存在一个，不然没法映射
     String nestedResultMap = context.getStringAttribute("resultMap",
         processNestedResultMappings(context, Collections.<ResultMapping> emptyList()));
     // 设置不能为空的属性名（嵌套标签中使用）
@@ -506,6 +505,7 @@ public class XMLMapperBuilder extends BaseBuilder {
       // 该操作是解析association、collection、case下面的子标签
       if (context.getStringAttribute("select") == null) {
         ResultMap resultMap = resultMapElement(context, resultMappings);
+        // 这里id为mapper_resultMap[父resultMap的id值]_association[association的property属性值]
         return resultMap.getId();
       }
     }
