@@ -319,40 +319,54 @@ public class XMLMapperBuilder extends BaseBuilder {
     return resultMapElement(resultMapNode, Collections.<ResultMapping> emptyList());
   }
   /**
-   * 重载，resultMap标签解析
-   * TODO 读到这里，发现自己对mybatis的一些使用还不够熟悉，主要是很多特性平时也很少用，先花时间阅读一个官网再更
+   * 重载，resultMap标签解析，resultMap的作用：映射POJO类
+   * 到这里希望大家能把mapper.xml里面的使用要熟练，可以看官网XML映射文件项
+   * 该方法会被后续处理递归调用，因为association、collection、case标签也会嵌套id、result等标签，这里才好理解第二个参数additionalResultMappings
    */
   private ResultMap resultMapElement(XNode resultMapNode, List<ResultMapping> additionalResultMappings) throws Exception {
     ErrorContext.instance().activity("processing " + resultMapNode.getValueBasedIdentifier());
+    // 解析出resultMap的id和type属性
     String id = resultMapNode.getStringAttribute("id",
         resultMapNode.getValueBasedIdentifier());
     String type = resultMapNode.getStringAttribute("type",
         resultMapNode.getStringAttribute("ofType",
             resultMapNode.getStringAttribute("resultType",
                 resultMapNode.getStringAttribute("javaType"))));
+    // extends属性，resultMap标签可以继承另一个resultMap
     String extend = resultMapNode.getStringAttribute("extends");
+    // autoMapping是否自动映射属性，如果为true就是字段名和属性名自动映射，忽略大小写
+    // 如果有自动映射的属性，我们一般使用resultType属性，不用费劲在resultMap上，
+    // 不过有特殊需求，比如有嵌套一对多，多对多映射，autoMapping不会对嵌套的属性进行映射
     Boolean autoMapping = resultMapNode.getBooleanAttribute("autoMapping");
+    // resultMap的type的Class对象
     Class<?> typeClass = resolveClass(type);
     Discriminator discriminator = null;
     List<ResultMapping> resultMappings = new ArrayList<ResultMapping>();
     resultMappings.addAll(additionalResultMappings);
+
+    // 获取所有子节点
     List<XNode> resultChildren = resultMapNode.getChildren();
     for (XNode resultChild : resultChildren) {
+      // constructor标签，会调用对应POJO的构造方法
       if ("constructor".equals(resultChild.getName())) {
         processConstructorElement(resultChild, typeClass, resultMappings);
       } else if ("discriminator".equals(resultChild.getName())) {
+        // 相当于java中的switch，具体看官方文档，是对结果集返回的操作
         discriminator = processDiscriminatorElement(resultChild, typeClass, resultMappings);
       } else {
+        // 将id标签作为ResultFlag.ID枚举放入flags集合
         List<ResultFlag> flags = new ArrayList<ResultFlag>();
         if ("id".equals(resultChild.getName())) {
           flags.add(ResultFlag.ID);
         }
-        // TODO
+        // 将构建好的ResultMapping对象放入集合
         resultMappings.add(buildResultMappingFromContext(resultChild, typeClass, flags));
       }
     }
+    // 构建一个ResultMap对象解析器
     ResultMapResolver resultMapResolver = new ResultMapResolver(builderAssistant, id, typeClass, extend, discriminator, resultMappings, autoMapping);
     try {
+      // 解析一个ResultMap对象
       return resultMapResolver.resolve();
     } catch (IncompleteElementException  e) {
       configuration.addIncompleteResultMap(resultMapResolver);
@@ -428,6 +442,14 @@ public class XMLMapperBuilder extends BaseBuilder {
     return true;
   }
 
+  /**
+   * 从该标签上下文构建结果映射，针对id、result、association、collection、case标签
+   * @param context
+   * @param resultType
+   * @param flags
+   * @return
+   * @throws Exception
+   */
   private ResultMapping buildResultMappingFromContext(XNode context, Class<?> resultType, List<ResultFlag> flags) throws Exception {
     String property;
     if (flags.contains(ResultFlag.CONSTRUCTOR)) {
@@ -439,25 +461,49 @@ public class XMLMapperBuilder extends BaseBuilder {
     String javaType = context.getStringAttribute("javaType");
     String jdbcType = context.getStringAttribute("jdbcType");
     String nestedSelect = context.getStringAttribute("select");
+    // 该标签的resultMap属性，一般为association，collection、case标签才有，
+    // 注意：resultMap属性和select属性只能存在一个，不然没法映射，
+    // 这里先获取resultMap属性，不存在设置为select对应的resultMap的id值
     String nestedResultMap = context.getStringAttribute("resultMap",
         processNestedResultMappings(context, Collections.<ResultMapping> emptyList()));
+    // 设置不能为空的属性名（嵌套标签中使用）
     String notNullColumn = context.getStringAttribute("notNullColumn");
+    // 给每一个属性加一个前缀（嵌套标签中使用）
     String columnPrefix = context.getStringAttribute("columnPrefix");
+    // 当前属性所使用的类型转换处理器
     String typeHandler = context.getStringAttribute("typeHandler");
+    // 一般用在返回多结果集映射，存储过程中使用
     String resultSet = context.getStringAttribute("resultSet");
+    // 标识外键的列名（用在association 和 collection标签）
     String foreignColumn = context.getStringAttribute("foreignColumn");
+    // 是否延迟映射数据到POJO
     boolean lazy = "lazy".equals(context.getStringAttribute("fetchType", configuration.isLazyLoadingEnabled() ? "lazy" : "eager"));
+    // 该字段对应的java类型
     Class<?> javaTypeClass = resolveClass(javaType);
+    // 该字段所使用的类型转换处理器
     @SuppressWarnings("unchecked")
     Class<? extends TypeHandler<?>> typeHandlerClass = (Class<? extends TypeHandler<?>>) resolveClass(typeHandler);
+    // 该字段所对应的数据库类型
     JdbcType jdbcTypeEnum = resolveJdbcType(jdbcType);
-    return builderAssistant.buildResultMapping(resultType, property, column, javaTypeClass, jdbcTypeEnum, nestedSelect, nestedResultMap, notNullColumn, columnPrefix, typeHandlerClass, flags, resultSet, foreignColumn, lazy);
+    // 构建resultMap对象
+    return builderAssistant.buildResultMapping(resultType, property, column,
+            javaTypeClass, jdbcTypeEnum, nestedSelect, nestedResultMap, notNullColumn,
+            columnPrefix, typeHandlerClass, flags, resultSet, foreignColumn, lazy);
   }
-  
+
+  /**
+   * 处理resultMap嵌套的类resultMap标签，比如association、collection、case
+   * @param context
+   * @param resultMappings
+   * @return
+   * @throws Exception
+   */
   private String processNestedResultMappings(XNode context, List<ResultMapping> resultMappings) throws Exception {
     if ("association".equals(context.getName())
         || "collection".equals(context.getName())
         || "case".equals(context.getName())) {
+      // 这些标签上不能有select属性，才可递归解析，否则select就会先去处理另一个sql语句，这个后续会处理
+      // 该操作是解析association、collection、case下面的子标签
       if (context.getStringAttribute("select") == null) {
         ResultMap resultMap = resultMapElement(context, resultMappings);
         return resultMap.getId();

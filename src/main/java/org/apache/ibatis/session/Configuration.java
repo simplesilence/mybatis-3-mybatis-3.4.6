@@ -99,6 +99,7 @@ public class Configuration {
 
   protected Environment environment;
 
+  // ========== settings配置start ==========
   protected boolean safeRowBoundsEnabled;
   protected boolean safeResultHandlerEnabled = true;
   protected boolean mapUnderscoreToCamelCase;
@@ -110,6 +111,8 @@ public class Configuration {
   protected boolean callSettersOnNulls;
   protected boolean useActualParamName = true;
   protected boolean returnInstanceForEmptyRow;
+  // ========== settings配置end ==========
+
 
   protected String logPrefix;
   protected Class <? extends Log> logImpl;

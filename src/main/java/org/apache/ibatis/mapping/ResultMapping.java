@@ -26,6 +26,7 @@ import org.apache.ibatis.type.TypeHandler;
 import org.apache.ibatis.type.TypeHandlerRegistry;
 
 /**
+ * ResultMapping对象，是对resultMap的子标签的封装，除了constructor、discriminator标签以外
  * @author Clinton Begin
  */
 public class ResultMapping {

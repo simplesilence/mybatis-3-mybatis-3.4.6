@@ -387,6 +387,24 @@ public class MapperBuilderAssistant extends BaseBuilder {
     return resultMaps;
   }
 
+  /**
+   * 构建ResultMapping对象
+   * @param resultType resultMap的type属性的类型的Class对象
+   * @param property 当前标签所对应的java pojo属性名称
+   * @param column 当前标签所对应的数据库列名称
+   * @param javaType 当前标签所对应pojo的java类型
+   * @param jdbcType 当前标签对应数据库的类型
+   * @param nestedSelect 该标签上的select属性值，select是标签该属性值用另一个sql返回的结果
+   * @param nestedResultMap 该标签上的resultMap属性，主要针对association、collection、case标签
+   * @param notNullColumn 标识不为null的列，主要针对association、collection标签
+   * @param columnPrefix 结果集列名前缀，主要针对association、collection标签
+   * @param typeHandler 类型转换处理器Class对象
+   * @param flags 集合，里面存放ResultFlag枚举类集合
+   * @param resultSet resultSet属性，主要针对association、collection标签
+   * @param foreignColumn 外键列名，主要针对association、collection标签
+   * @param lazy 是否懒映射属性
+   * @return
+   */
   public ResultMapping buildResultMapping(
       Class<?> resultType,
       String property,
