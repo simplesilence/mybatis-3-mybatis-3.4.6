@@ -88,6 +88,12 @@ public class MapperBuilderAssistant extends BaseBuilder {
     this.currentNamespace = currentNamespace;
   }
 
+  /**
+   * 重写base，即某些标签的id值，比如sql标签
+   * @param base sql标签的原始id值
+   * @param isReference 是否引用
+   * @return
+   */
   public String applyCurrentNamespace(String base, boolean isReference) {
     if (base == null) {
       return null;

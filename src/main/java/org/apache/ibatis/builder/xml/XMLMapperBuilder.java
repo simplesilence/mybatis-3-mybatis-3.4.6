@@ -374,6 +374,18 @@ public class XMLMapperBuilder extends BaseBuilder {
     }
   }
 
+  /**
+   * constructor标签解析
+   * <constructor>
+   *    <idArg column="id" javaType="int"/>
+   *    <arg column="username" javaType="String"/>
+   *    <arg column="age" javaType="_int"/>
+   * </constructor>
+   * @param resultChild constructor节点对象
+   * @param resultType resultMap的type属性值的Class对象
+   * @param resultMappings resultMapping即每个resultMap的子标签的集合
+   * @throws Exception
+   */
   private void processConstructorElement(XNode resultChild, Class<?> resultType, List<ResultMapping> resultMappings) throws Exception {
     List<XNode> argChildren = resultChild.getChildren();
     for (XNode argChild : argChildren) {
@@ -386,16 +398,35 @@ public class XMLMapperBuilder extends BaseBuilder {
     }
   }
 
+  /**
+   * discriminator标签解析
+   *   <discriminator javaType="int" column="vehicle_type">
+   *     <case value="1" resultMap="carResult"/>
+   *     <case value="2" resultMap="truckResult"/>
+   *     <case value="3" resultMap="vanResult"/>
+   *     <case value="4" resultMap="suvResult"/>
+   *   </discriminator>
+   * @param context
+   * @param resultType
+   * @param resultMappings
+   * @return
+   * @throws Exception
+   */
   private Discriminator processDiscriminatorElement(XNode context, Class<?> resultType, List<ResultMapping> resultMappings) throws Exception {
+    // 获取discriminator标签的相关属性
     String column = context.getStringAttribute("column");
     String javaType = context.getStringAttribute("javaType");
     String jdbcType = context.getStringAttribute("jdbcType");
     String typeHandler = context.getStringAttribute("typeHandler");
+    // 映射的java类型的Class对象
     Class<?> javaTypeClass = resolveClass(javaType);
+    // 类型转换器Class对象
     @SuppressWarnings("unchecked")
     Class<? extends TypeHandler<?>> typeHandlerClass = (Class<? extends TypeHandler<?>>) resolveClass(typeHandler);
+    // 对应的数据库类型
     JdbcType jdbcTypeEnum = resolveJdbcType(jdbcType);
     Map<String, String> discriminatorMap = new HashMap<String, String>();
+    // case标签解析
     for (XNode caseChild : context.getChildren()) {
       String value = caseChild.getStringAttribute("value");
       String resultMap = caseChild.getStringAttribute("resultMap", processNestedResultMappings(caseChild, resultMappings));
@@ -404,6 +435,11 @@ public class XMLMapperBuilder extends BaseBuilder {
     return builderAssistant.buildDiscriminator(resultType, column, javaTypeClass, jdbcTypeEnum, typeHandlerClass, discriminatorMap);
   }
 
+  /**
+   * sql标签解析
+   * @param list
+   * @throws Exception
+   */
   private void sqlElement(List<XNode> list) throws Exception {
     if (configuration.getDatabaseId() != null) {
       sqlElement(list, configuration.getDatabaseId());
@@ -411,27 +447,47 @@ public class XMLMapperBuilder extends BaseBuilder {
     sqlElement(list, null);
   }
 
+  /**
+   * 重载sql标签解析
+   * @param list
+   * @param requiredDatabaseId
+   * @throws Exception
+   */
   private void sqlElement(List<XNode> list, String requiredDatabaseId) throws Exception {
     for (XNode context : list) {
+      // 获取sql标签上的databaseId属性值
       String databaseId = context.getStringAttribute("databaseId");
+      // id属性值
       String id = context.getStringAttribute("id");
+      // 重写id属性值，前面加上当前mapper文件的命名空间为：命名空间.id值
       id = builderAssistant.applyCurrentNamespace(id, false);
+      // 匹配为true，添加到sqlFragments集合
       if (databaseIdMatchesCurrent(id, databaseId, requiredDatabaseId)) {
         sqlFragments.put(id, context);
       }
     }
   }
-  
+
+  /**
+   * sql标签设置的databaseId是否匹配当前SQLSession中的databaseId
+   * @param id
+   * @param databaseId
+   * @param requiredDatabaseId
+   * @return
+   */
   private boolean databaseIdMatchesCurrent(String id, String databaseId, String requiredDatabaseId) {
     if (requiredDatabaseId != null) {
+      // sql标签的databaseId和当前session的databaseId不匹配
       if (!requiredDatabaseId.equals(databaseId)) {
         return false;
       }
     } else {
+      // 当前session的databaseId为空
       if (databaseId != null) {
         return false;
       }
       // skip this fragment if there is a previous one with a not null databaseId
+      // 如果该sql标签的id已存在sqlFragments里，且对应的XNode不为空，返回false，skip
       if (this.sqlFragments.containsKey(id)) {
         XNode context = this.sqlFragments.get(id);
         if (context.getStringAttribute("databaseId") != null) {
@@ -443,7 +499,8 @@ public class XMLMapperBuilder extends BaseBuilder {
   }
 
   /**
-   * 从该标签上下文构建结果映射，针对id、result、association、collection、case标签
+   * 从该标签上下文构建结果映射，
+   * 对id、result、association、collection、case，constructor中（idArg，arg）标签
    * @param context
    * @param resultType
    * @param flags
