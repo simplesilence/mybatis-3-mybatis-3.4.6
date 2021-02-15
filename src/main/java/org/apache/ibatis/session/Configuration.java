@@ -774,6 +774,7 @@ public class Configuration {
 
   public boolean hasStatement(String statementName, boolean validateIncompleteStatements) {
     if (validateIncompleteStatements) {
+      // 把未完成的解析都解析掉
       buildAllStatements();
     }
     return mappedStatements.containsKey(statementName);

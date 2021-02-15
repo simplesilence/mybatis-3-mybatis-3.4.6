@@ -29,6 +29,7 @@ import org.apache.ibatis.scripting.LanguageDriver;
 import org.apache.ibatis.session.Configuration;
 
 /**
+ * 增删改查标签的封装
  * @author Clinton Begin
  */
 public final class MappedStatement {

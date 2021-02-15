@@ -156,6 +156,10 @@ public class XMLMapperBuilder extends BaseBuilder {
     }
   }
 
+  /**
+   * 重点：解析sql增删改查操作标签
+   * @param list
+   */
   private void buildStatementFromContext(List<XNode> list) {
     if (configuration.getDatabaseId() != null) {
       buildStatementFromContext(list, configuration.getDatabaseId());
@@ -163,8 +167,14 @@ public class XMLMapperBuilder extends BaseBuilder {
     buildStatementFromContext(list, null);
   }
 
+  /**
+   * 构建增删改查的statement对象
+   * @param list
+   * @param requiredDatabaseId
+   */
   private void buildStatementFromContext(List<XNode> list, String requiredDatabaseId) {
     for (XNode context : list) {
+      // 对增删改查标签封装为XMLStatementBuilder建造者
       final XMLStatementBuilder statementParser = new XMLStatementBuilder(configuration, builderAssistant, context, requiredDatabaseId);
       try {
         statementParser.parseStatementNode();
@@ -495,6 +505,7 @@ public class XMLMapperBuilder extends BaseBuilder {
         }
       }
     }
+    // 只有当当前标签的databaseId和当前所需databaseId相等或两者都为空才算匹配成功
     return true;
   }
 
