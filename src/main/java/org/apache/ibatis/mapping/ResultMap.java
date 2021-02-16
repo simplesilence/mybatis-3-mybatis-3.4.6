@@ -40,22 +40,37 @@ import org.apache.ibatis.session.Configuration;
 public class ResultMap {
   private Configuration configuration;
 
+  // id属性值
   private String id;
+  // type属性值的Class对象，即映射的POJO类Class对象
   private Class<?> type;
+  // 子标签对象集合，包含extend扩展自其它resultMap对象的子标签对象
   private List<ResultMapping> resultMappings;
+  // 只存储id和idArg标签对应的ResultMapping对象
   private List<ResultMapping> idResultMappings;
+  // 存储constructor标签下idArg和arg标签对应的ResultMapping对象
   private List<ResultMapping> constructorResultMappings;
+  // 存储id和result标签对应的ResultMapping对象
   private List<ResultMapping> propertyResultMappings;
+  // 存储id、result、idArg、arg标签的column列属性值
   private Set<String> mappedColumns;
+  // 存储id、result标签的property属性值，或idArg和arg标签的name属性值
   private Set<String> mappedProperties;
+  //辨别器对象，不常用，用于某一列的返回值决定使用哪个resultType对象，具体使用查看官方文档
   private Discriminator discriminator;
+  // 是否有嵌套resultMap，常见于association、collection标签的resultType属性
   private boolean hasNestedResultMaps;
+  // 是否有嵌套额外select属性，常见于该属性值需要另一个sql查询
   private boolean hasNestedQueries;
+  // 是否开启自动映射，会覆盖全局设置的
   private Boolean autoMapping;
 
   private ResultMap() {
   }
 
+  /**
+   * ResultMap的建造者内部类，就是一个工具类使用
+   */
   public static class Builder {
     private static final Log log = LogFactory.getLog(Builder.class);
 
@@ -82,16 +97,25 @@ public class ResultMap {
       return resultMap.type;
     }
 
+    /**
+     * 建造一个ResultMap对象
+     * 组合外部类的成员变量
+     * 较为复杂，需细看
+     * @return
+     */
     public ResultMap build() {
       if (resultMap.id == null) {
         throw new IllegalArgumentException("ResultMaps must have an id");
       }
+      // 初始化相应容器
       resultMap.mappedColumns = new HashSet<String>();
       resultMap.mappedProperties = new HashSet<String>();
       resultMap.idResultMappings = new ArrayList<ResultMapping>();
       resultMap.constructorResultMappings = new ArrayList<ResultMapping>();
       resultMap.propertyResultMappings = new ArrayList<ResultMapping>();
       final List<String> constructorArgNames = new ArrayList<String>();
+
+      // 遍历每一个ResultMapping对象
       for (ResultMapping resultMapping : resultMap.resultMappings) {
         resultMap.hasNestedQueries = resultMap.hasNestedQueries || resultMapping.getNestedQueryId() != null;
         resultMap.hasNestedResultMaps = resultMap.hasNestedResultMaps || (resultMapping.getNestedResultMapId() != null && resultMapping.getResultSet() == null);
@@ -99,6 +123,7 @@ public class ResultMap {
         if (column != null) {
           resultMap.mappedColumns.add(column.toUpperCase(Locale.ENGLISH));
         } else if (resultMapping.isCompositeResult()) {
+          // 需要拼接前缀的column列，一般是复合标签，association、collection标签有columnPrefix属性
           for (ResultMapping compositeResultMapping : resultMapping.getComposites()) {
             final String compositeColumn = compositeResultMapping.getColumn();
             if (compositeColumn != null) {
@@ -106,26 +131,32 @@ public class ResultMap {
             }
           }
         }
+        // property属性值，映射POJO的属性名称，凡是带有property属性的都存入mappedProperties集合
         final String property = resultMapping.getProperty();
         if(property != null) {
           resultMap.mappedProperties.add(property);
         }
         if (resultMapping.getFlags().contains(ResultFlag.CONSTRUCTOR)) {
+          // 该标签是constructor下的，存入相应集合
           resultMap.constructorResultMappings.add(resultMapping);
+          // id和result标签的property和idArg和arg标签的name含义一样，他们在ResultMapping对象中都叫property
           if (resultMapping.getProperty() != null) {
             constructorArgNames.add(resultMapping.getProperty());
           }
         } else {
           resultMap.propertyResultMappings.add(resultMapping);
         }
+        // id标签存入相应集合
         if (resultMapping.getFlags().contains(ResultFlag.ID)) {
           resultMap.idResultMappings.add(resultMapping);
         }
       }
+      // TODO 如果没有id和idArg，则存成和整个resultMap子标签集合一样，待研究
       if (resultMap.idResultMappings.isEmpty()) {
         resultMap.idResultMappings.addAll(resultMap.resultMappings);
       }
       if (!constructorArgNames.isEmpty()) {
+        // constructor的子标签匹配对应的构造函数
         final List<String> actualArgNames = argNamesOfMatchingConstructor(constructorArgNames);
         if (actualArgNames == null) {
           throw new BuilderException("Error in result map '" + resultMap.id
@@ -143,6 +174,7 @@ public class ResultMap {
         });
       }
       // lock down collections
+      // 锁定对应集合，不让其修改，变为只读集合
       resultMap.resultMappings = Collections.unmodifiableList(resultMap.resultMappings);
       resultMap.idResultMappings = Collections.unmodifiableList(resultMap.idResultMappings);
       resultMap.constructorResultMappings = Collections.unmodifiableList(resultMap.constructorResultMappings);

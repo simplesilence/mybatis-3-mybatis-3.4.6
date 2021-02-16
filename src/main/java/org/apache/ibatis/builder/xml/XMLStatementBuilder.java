@@ -81,15 +81,24 @@ public class XMLStatementBuilder extends BaseBuilder {
     String lang = context.getStringAttribute("lang");
     LanguageDriver langDriver = getLanguageDriver(lang);
 
+    // 返回值映射的java类型Class对象
     Class<?> resultTypeClass = resolveClass(resultType);
+    // 不常用，大概知道作用
     String resultSetType = context.getStringAttribute("resultSetType");
+    // 当前sql语句的声明类型，默认使用预编译类型StatementType.PREPARED
     StatementType statementType = StatementType.valueOf(context.getStringAttribute("statementType", StatementType.PREPARED.toString()));
     ResultSetType resultSetTypeEnum = resolveResultSetType(resultSetType);
 
+    // 获取标签名
     String nodeName = context.getNode().getNodeName();
+    // 把当前标签名转大写后映射对应的SqlCommandType枚举
     SqlCommandType sqlCommandType = SqlCommandType.valueOf(nodeName.toUpperCase(Locale.ENGLISH));
+    // 是否是select标签类型
     boolean isSelect = sqlCommandType == SqlCommandType.SELECT;
+    // flushCache将其设置为 true 后，只要语句被调用，都会导致本地缓存和二级缓存被清空，默认值：false。
+    // 这里设置为!isSelect，意为只要增删改都刷新缓存
     boolean flushCache = context.getBooleanAttribute("flushCache", !isSelect);
+    // useCache将其设置为 true 后，将会导致本条语句的结果被二级缓存缓存起来，默认值：对 select 元素为 true。
     boolean useCache = context.getBooleanAttribute("useCache", isSelect);
     boolean resultOrdered = context.getBooleanAttribute("resultOrdered", false);
 

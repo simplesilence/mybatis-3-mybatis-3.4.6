@@ -208,6 +208,16 @@ public class MapperBuilderAssistant extends BaseBuilder {
         .build();
   }
 
+  /**
+   * 构建ResultMap对象
+   * @param id resultMap标签的id属性值
+   * @param type 映射POJO类的Class对象
+   * @param extend resultMap标签extend属性值
+   * @param discriminator 辨别器对象
+   * @param resultMappings 所有子标签已构建好的对象集合，比如id，result，association、collect等标签
+   * @param autoMapping 是否自动映射实体类，映射规则请看官网介绍
+   * @return
+   */
   public ResultMap addResultMap(
       String id,
       Class<?> type,
@@ -218,14 +228,18 @@ public class MapperBuilderAssistant extends BaseBuilder {
     id = applyCurrentNamespace(id, false);
     extend = applyCurrentNamespace(extend, true);
 
+    // 扩展自另一个resultMap不为空
     if (extend != null) {
       if (!configuration.hasResultMap(extend)) {
         throw new IncompleteElementException("Could not find a parent resultmap with id '" + extend + "'");
       }
+      // 拿到扩展的resultMap对象，获取其resultMapping对象集合
       ResultMap resultMap = configuration.getResultMap(extend);
       List<ResultMapping> extendedResultMappings = new ArrayList<ResultMapping>(resultMap.getResultMappings());
+      // 去除和主resultMap重复的resultMapping对象
       extendedResultMappings.removeAll(resultMappings);
       // Remove parent constructor if this resultMap declares a constructor.
+      // 扩展的resultMap是否有constructor标签
       boolean declaresConstructor = false;
       for (ResultMapping resultMapping : resultMappings) {
         if (resultMapping.getFlags().contains(ResultFlag.CONSTRUCTOR)) {
@@ -233,7 +247,10 @@ public class MapperBuilderAssistant extends BaseBuilder {
           break;
         }
       }
+      // 当前resultMap存在constructor标签
       if (declaresConstructor) {
+        // 查看扩展的resultMap是否有constructor标签，有的话删掉，
+        // 注意这里的extendedResultMappings是上面新new的，所以不会删除原resultMap的constructor ResultMapping对象
         Iterator<ResultMapping> extendedResultMappingsIter = extendedResultMappings.iterator();
         while (extendedResultMappingsIter.hasNext()) {
           if (extendedResultMappingsIter.next().getFlags().contains(ResultFlag.CONSTRUCTOR)) {
@@ -241,11 +258,14 @@ public class MapperBuilderAssistant extends BaseBuilder {
           }
         }
       }
+      // 把扩展的resultMap里面去重后的子标签合并
       resultMappings.addAll(extendedResultMappings);
     }
+    // 利用ResultMap的内部类Builder构建一个ResultMap对象
     ResultMap resultMap = new ResultMap.Builder(configuration, id, type, resultMappings, autoMapping)
         .discriminator(discriminator)
         .build();
+    // 添加到configuration的resultMaps容器中
     configuration.addResultMap(resultMap);
     return resultMap;
   }

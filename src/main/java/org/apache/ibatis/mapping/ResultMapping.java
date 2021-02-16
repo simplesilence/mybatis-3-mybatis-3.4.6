@@ -32,12 +32,15 @@ import org.apache.ibatis.type.TypeHandlerRegistry;
 public class ResultMapping {
 
   private Configuration configuration;
+  // 存储id和result标签的property属性值和idArg和arg的name属性值
   private String property;
   private String column;
   private Class<?> javaType;
   private JdbcType jdbcType;
   private TypeHandler<?> typeHandler;
+  // 当前ResultMapping对象所嵌套的resultMap属性值，常见于association、collection标签
   private String nestedResultMapId;
+  // 当前ResultMapping对象所嵌套的select属性值
   private String nestedQueryId;
   private Set<String> notNullColumns;
   private String columnPrefix;
