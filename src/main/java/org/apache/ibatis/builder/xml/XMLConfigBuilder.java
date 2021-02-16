@@ -49,7 +49,7 @@ import org.apache.ibatis.type.TypeHandler;
 
 /**
  * mybatis-config配置文件建造者，有xml解析器等，封装了XPathParser
- *
+ * 该类是指是mybatis-config.xml配置文件的对象
  * @author Clinton Begin
  * @author Kazuki Shimizu
  */

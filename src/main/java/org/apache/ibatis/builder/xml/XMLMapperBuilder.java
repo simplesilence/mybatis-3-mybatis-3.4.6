@@ -56,6 +56,8 @@ public class XMLMapperBuilder extends BaseBuilder {
 
   private final XPathParser parser;
   private final MapperBuilderAssistant builderAssistant;
+  // 存放sql标签节点，命名空间.id属性值作为key，标签节点对象作为值，
+  // 这里要注意这个取名，fragment，意为碎片，因为
   private final Map<String, XNode> sqlFragments;
   private final String resource;
 
@@ -162,8 +164,13 @@ public class XMLMapperBuilder extends BaseBuilder {
    */
   private void buildStatementFromContext(List<XNode> list) {
     if (configuration.getDatabaseId() != null) {
+      // 用于解析增删改查标签又单独配置了databaseId属性的标签
       buildStatementFromContext(list, configuration.getDatabaseId());
     }
+
+    /*
+     * 细节：这里会再次调用一次，为了解析没有配置databaseId属性的增删改查标签
+     */
     buildStatementFromContext(list, null);
   }
 
@@ -447,13 +454,18 @@ public class XMLMapperBuilder extends BaseBuilder {
 
   /**
    * sql标签解析
+   * 核心作用：存入sqlFragments集合（命名空间.id属性值作为key，标签节点对象作为值）
    * @param list
    * @throws Exception
    */
   private void sqlElement(List<XNode> list) throws Exception {
     if (configuration.getDatabaseId() != null) {
+      // sql标签又单独配置了databaseId属性的标签
       sqlElement(list, configuration.getDatabaseId());
     }
+    /*
+     * 细节：再次调用，为了解析sql标签没有配置databaseId属性的
+     */
     sqlElement(list, null);
   }
 
@@ -492,14 +504,17 @@ public class XMLMapperBuilder extends BaseBuilder {
         return false;
       }
     } else {
-      // 当前session的databaseId为空
+      /*
+       * 走到这里，一般是当前标签没有单独配置databaseId属性
+       */
       if (databaseId != null) {
         return false;
       }
       // skip this fragment if there is a previous one with a not null databaseId
-      // 如果该sql标签的id已存在sqlFragments里，且对应的XNode不为空，返回false，skip
+      // 如果该sql标签的id已存在sqlFragments里
       if (this.sqlFragments.containsKey(id)) {
         XNode context = this.sqlFragments.get(id);
+        // 该标签存在databaseId属性，返回false，skip
         if (context.getStringAttribute("databaseId") != null) {
           return false;
         }
