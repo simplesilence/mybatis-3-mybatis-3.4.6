@@ -19,5 +19,6 @@ package org.apache.ibatis.mapping;
  * @author Clinton Begin
  */
 public enum SqlCommandType {
+  // 对应sql语句类型的 未知，插入，更新，删除，查询，刷新。
   UNKNOWN, INSERT, UPDATE, DELETE, SELECT, FLUSH;
 }

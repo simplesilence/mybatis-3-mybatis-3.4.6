@@ -57,7 +57,7 @@ public class XMLMapperBuilder extends BaseBuilder {
   private final XPathParser parser;
   private final MapperBuilderAssistant builderAssistant;
   // 存放sql标签节点，命名空间.id属性值作为key，标签节点对象作为值，
-  // 这里要注意这个取名，fragment，意为碎片，因为
+  // 这里要注意这个取名，fragment，意为碎片，因为sql标签的设计就是为了重用一些sql碎片
   private final Map<String, XNode> sqlFragments;
   private final String resource;
 
@@ -505,16 +505,17 @@ public class XMLMapperBuilder extends BaseBuilder {
       }
     } else {
       /*
-       * 走到这里，一般是当前标签没有单独配置databaseId属性
+       * 走到这里，说明当前session中没有databaseId
        */
+      // session中没有databaseId，但sql标签配置了，自然不匹配
       if (databaseId != null) {
         return false;
       }
       // skip this fragment if there is a previous one with a not null databaseId
-      // 如果该sql标签的id已存在sqlFragments里
+      // 如果该sql标签的id已存在sqlFragments里，重复了
       if (this.sqlFragments.containsKey(id)) {
         XNode context = this.sqlFragments.get(id);
-        // 该标签存在databaseId属性，返回false，skip
+        // 该标签存在databaseId属性，但当前session中没有，返回false，skip忽略当前节点
         if (context.getStringAttribute("databaseId") != null) {
           return false;
         }

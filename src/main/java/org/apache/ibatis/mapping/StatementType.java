@@ -19,5 +19,6 @@ package org.apache.ibatis.mapping;
  * @author Clinton Begin
  */
 public enum StatementType {
+  // 分别对应MySQL的普通语句，预处理语句，储存过程。
   STATEMENT, PREPARED, CALLABLE
 }

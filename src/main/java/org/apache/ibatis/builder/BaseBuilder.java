@@ -80,6 +80,11 @@ public abstract class BaseBuilder {
     }
   }
 
+  /**
+   * 结果集类型
+   * @param alias
+   * @return
+   */
   protected ResultSetType resolveResultSetType(String alias) {
     if (alias == null) {
       return null;

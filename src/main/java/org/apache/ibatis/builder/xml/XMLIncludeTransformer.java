@@ -42,6 +42,10 @@ public class XMLIncludeTransformer {
     this.builderAssistant = builderAssistant;
   }
 
+  /**
+   * 应用include标签
+   * @param source
+   */
   public void applyIncludes(Node source) {
     Properties variablesContext = new Properties();
     Properties configurationVariables = configuration.getVariables();
@@ -58,7 +62,9 @@ public class XMLIncludeTransformer {
    */
   private void applyIncludes(Node source, final Properties variablesContext, boolean included) {
     if (source.getNodeName().equals("include")) {
-      Node toInclude = findSqlFragment(getStringAttribute(source, "refid"), variablesContext);
+      Node toInclude = findSqlFragment(
+              // 获取refid属性所引用的sql标签的id
+              getStringAttribute(source, "refid"), variablesContext);
       Properties toIncludeContext = getVariablesContext(source, variablesContext);
       applyIncludes(toInclude, toIncludeContext, true);
       if (toInclude.getOwnerDocument() != source.getOwnerDocument()) {
@@ -89,6 +95,12 @@ public class XMLIncludeTransformer {
     }
   }
 
+  /**
+   * TODO 
+   * @param refid
+   * @param variables
+   * @return
+   */
   private Node findSqlFragment(String refid, Properties variables) {
     refid = PropertyParser.parse(refid, variables);
     refid = builderAssistant.applyCurrentNamespace(refid, true);

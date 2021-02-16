@@ -100,9 +100,11 @@ public class XMLStatementBuilder extends BaseBuilder {
     boolean flushCache = context.getBooleanAttribute("flushCache", !isSelect);
     // useCache将其设置为 true 后，将会导致本条语句的结果被二级缓存缓存起来，默认值：对 select 元素为 true。
     boolean useCache = context.getBooleanAttribute("useCache", isSelect);
+    // 该属性的使用方法，参考 https://blog.csdn.net/weixin_40240756/article/details/108889127
     boolean resultOrdered = context.getBooleanAttribute("resultOrdered", false);
 
     // Include Fragments before parsing
+    // 解析include标签，include标签用于引用sql标签
     XMLIncludeTransformer includeParser = new XMLIncludeTransformer(configuration, builderAssistant);
     includeParser.applyIncludes(context.getNode());
 
@@ -204,18 +206,22 @@ public class XMLStatementBuilder extends BaseBuilder {
         return false;
       }
     } else {
-      // 当前session的databaseId为空，但标签上配置了databaseId，也不匹配
+      /*
+       * 这一步，说明当前session没有databaseId
+       */
+      // session中没有databaseId，但增删改查标签配置了，自然不匹配
       if (databaseId != null) {
         return false;
       }
-      // 当前所需databaseId和标签的databaseId都为空
+      // 当前session的databaseId和标签的databaseId都为空
       // skip this statement if there is a previous one with a not null databaseId
-      // 把当前标签的id值前面拼上当前mapper文件的namespace
+      // 把当前增删改查标签的id值前面拼上当前mapper文件的namespace
       id = builderAssistant.applyCurrentNamespace(id, false);
-      // 当前id是否存在，不在未完成的statements集合中查找
+      // 当前id是否存在，不在未完成的incompleteStatements集合中查找
       if (this.configuration.hasStatement(id, false)) {
         // 存在，获取当前id所对应的MappedStatement对象
         MappedStatement previous = this.configuration.getMappedStatement(id, false); // issue #2
+        // 当前增删改查标签配置有databaseId属性，而session中没有，匹配不成功，忽略掉当前节点
         if (previous.getDatabaseId() != null) {
           return false;
         }
