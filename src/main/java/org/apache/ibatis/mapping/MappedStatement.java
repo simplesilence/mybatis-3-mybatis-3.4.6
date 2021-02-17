@@ -62,6 +62,9 @@ public final class MappedStatement {
     // constructor disabled
   }
 
+  /**
+   * MappedStatement的内部建造者类， 就是一工具类
+   */
   public static class Builder {
     private MappedStatement mappedStatement = new MappedStatement();
 

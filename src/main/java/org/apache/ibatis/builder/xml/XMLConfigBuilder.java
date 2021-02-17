@@ -638,8 +638,9 @@ public class XMLConfigBuilder extends BaseBuilder {
             // 获取当前线程的一个ErrorContext对象
             ErrorContext.instance().resource(resource);
             InputStream inputStream = Resources.getResourceAsStream(resource);
-            // 解析基于路径mapper.xml文件
+            // 解析基于路径mapper.xml文件封装为XMLMapperBuilder
             XMLMapperBuilder mapperParser = new XMLMapperBuilder(inputStream, configuration, resource, configuration.getSqlFragments());
+            // 解析mapper.xml文件中所有的标签元素，并各自封装为对象存入configuration中对应的容器中
             mapperParser.parse();
           } else if (resource == null && url != null && mapperClass == null) {
             // url

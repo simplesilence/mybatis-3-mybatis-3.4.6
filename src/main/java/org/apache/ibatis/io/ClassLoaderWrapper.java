@@ -115,7 +115,7 @@ public class ClassLoaderWrapper {
       if (null != cl) {
 
         // try to find the resource as passed
-        // ClassLoader.getResourceAsStream()  无论要查找的资源前面是否带'/' 都会从classpath的根路径下查找。
+        // ClassLoader.getResourceAsStream()  无论要查找的资源前面是否带'/' 都会从classpath的根路径下查找，找不到就下一步加/后再找。
         // 注意：而Class.getResourceAsStream() 会指定要加载的资源路径与当前类所在包的路径一致。
         InputStream returnValue = cl.getResourceAsStream(resource);
 

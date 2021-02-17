@@ -89,7 +89,7 @@ public class MapperBuilderAssistant extends BaseBuilder {
   }
 
   /**
-   * 重写base，即某些标签的id值，比如sql标签
+   * 重写base，拼接上命名空间，即某些标签的id值，比如sql标签等
    * @param base sql标签的原始id值
    * @param isReference 是否引用
    * @return
@@ -270,6 +270,10 @@ public class MapperBuilderAssistant extends BaseBuilder {
     return resultMap;
   }
 
+  /**
+   * 构建Discriminator对象
+   * @return
+   */
   public Discriminator buildDiscriminator(
       Class<?> resultType,
       String column,
@@ -301,35 +305,27 @@ public class MapperBuilderAssistant extends BaseBuilder {
     return new Discriminator.Builder(configuration, resultMapping, namespaceDiscriminatorMap).build();
   }
 
+  /**
+   * 创建MappedStatement对象
+   * @return
+   */
   public MappedStatement addMappedStatement(
-      String id,
-      SqlSource sqlSource,
-      StatementType statementType,
-      SqlCommandType sqlCommandType,
-      Integer fetchSize,
-      Integer timeout,
-      String parameterMap,
-      Class<?> parameterType,
-      String resultMap,
-      Class<?> resultType,
-      ResultSetType resultSetType,
-      boolean flushCache,
-      boolean useCache,
-      boolean resultOrdered,
-      KeyGenerator keyGenerator,
-      String keyProperty,
-      String keyColumn,
-      String databaseId,
-      LanguageDriver lang,
-      String resultSets) {
+      String id, SqlSource sqlSource, StatementType statementType, SqlCommandType sqlCommandType, Integer fetchSize,
+      Integer timeout, String parameterMap, Class<?> parameterType, String resultMap, Class<?> resultType,
+      ResultSetType resultSetType, boolean flushCache, boolean useCache, boolean resultOrdered, KeyGenerator keyGenerator,
+      String keyProperty, String keyColumn, String databaseId, LanguageDriver lang, String resultSets) {
 
+    // 存在未解析完成的cache-ref，抛异常
     if (unresolvedCacheRef) {
       throw new IncompleteElementException("Cache-ref not yet resolved");
     }
 
+    // id拼接明明空间
     id = applyCurrentNamespace(id, false);
+    // 是否是select标签
     boolean isSelect = sqlCommandType == SqlCommandType.SELECT;
 
+    // MappedStatement建造者对象
     MappedStatement.Builder statementBuilder = new MappedStatement.Builder(configuration, id, sqlSource, sqlCommandType)
         .resource(resource)
         .fetchSize(fetchSize)
@@ -348,11 +344,13 @@ public class MapperBuilderAssistant extends BaseBuilder {
         .useCache(valueOrDefault(useCache, isSelect))
         .cache(currentCache);
 
+    // ParameterMap对象，增删改查标签上的parameterMap属性所指向的parameterMap标签，现在不常用
     ParameterMap statementParameterMap = getStatementParameterMap(parameterMap, parameterType, id);
     if (statementParameterMap != null) {
       statementBuilder.parameterMap(statementParameterMap);
     }
 
+    // 构建MappedStatement对象，并放入configuration对应的容器中
     MappedStatement statement = statementBuilder.build();
     configuration.addMappedStatement(statement);
     return statement;

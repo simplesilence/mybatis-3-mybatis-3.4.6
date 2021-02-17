@@ -62,10 +62,20 @@ public class XMLIncludeTransformer {
    */
   private void applyIncludes(Node source, final Properties variablesContext, boolean included) {
     if (source.getNodeName().equals("include")) {
+      // 查找include标签上refid所引用的sql标签对象
+      // 若refid中有占位符${}，
       Node toInclude = findSqlFragment(
               // 获取refid属性所引用的sql标签的id
               getStringAttribute(source, "refid"), variablesContext);
+
+      /*
+       * 解析include的子标签property，并将解析结果与variablesContext融合返回，
+       * 若property标签的value属性中存在占位符${}，则替换为对应的值
+       */
       Properties toIncludeContext = getVariablesContext(source, variablesContext);
+      /*
+       * 递归调用
+       */
       applyIncludes(toInclude, toIncludeContext, true);
       if (toInclude.getOwnerDocument() != source.getOwnerDocument()) {
         toInclude = source.getOwnerDocument().importNode(toInclude, true);
@@ -96,7 +106,7 @@ public class XMLIncludeTransformer {
   }
 
   /**
-   * TODO 
+   * TODO
    * @param refid
    * @param variables
    * @return
