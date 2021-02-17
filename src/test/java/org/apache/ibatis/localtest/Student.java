@@ -7,6 +7,8 @@ public class Student {
     private Integer Sage;
     private String Ssex;
 
+    public Student(){}
+
     public Student(Integer SId, String sname, Integer sage, String ssex) {
         this.SId = SId;
         Sname = sname;

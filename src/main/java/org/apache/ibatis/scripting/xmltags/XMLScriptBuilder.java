@@ -30,13 +30,19 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 /**
+ * mapper.xml的sql脚本建造者
  * @author Clinton Begin
  */
 public class XMLScriptBuilder extends BaseBuilder {
 
+  // 写有sql脚本的标签节点，比如select，update，insert，delete，selectKey
   private final XNode context;
+  // 是否是动态sql，比如带有下面initNodeHandlerMap()方法中标签的，
+  // 或是有${}占位符的，注意：#{}不在动态范围内，这种会预编译为?，jdbc的形式
   private boolean isDynamic;
+  // 接受的参数java类型Class对象
   private final Class<?> parameterType;
+  // 各种动态sql标签的处理器
   private final Map<String, NodeHandler> nodeHandlerMap = new HashMap<String, NodeHandler>();
 
   public XMLScriptBuilder(Configuration configuration, XNode context) {
@@ -63,7 +69,11 @@ public class XMLScriptBuilder extends BaseBuilder {
     nodeHandlerMap.put("bind", new BindHandler());
   }
 
+  /**
+   * 解析sql脚本，增删改查标签里的以及selectKey里的sql语句
+   */
   public SqlSource parseScriptNode() {
+    // 解析动态sql标签，并把它们封装在MixedSqlNode中
     MixedSqlNode rootSqlNode = parseDynamicTags(context);
     SqlSource sqlSource = null;
     if (isDynamic) {
@@ -74,12 +84,17 @@ public class XMLScriptBuilder extends BaseBuilder {
     return sqlSource;
   }
 
+  // 解析动态sql标签
   protected MixedSqlNode parseDynamicTags(XNode node) {
     List<SqlNode> contents = new ArrayList<SqlNode>();
+    // 获取所有子节点，包含文本类型，元素类型，CDATA格式化块类型
     NodeList children = node.getNode().getChildNodes();
+    // 遍历每个节点解析
     for (int i = 0; i < children.getLength(); i++) {
+      // 封装为XNode
       XNode child = node.newXNode(children.item(i));
       if (child.getNode().getNodeType() == Node.CDATA_SECTION_NODE || child.getNode().getNodeType() == Node.TEXT_NODE) {
+        // 文本类型和CDATA格式化块类型处理
         String data = child.getStringBody("");
         TextSqlNode textSqlNode = new TextSqlNode(data);
         if (textSqlNode.isDynamic()) {
@@ -89,7 +104,9 @@ public class XMLScriptBuilder extends BaseBuilder {
           contents.add(new StaticTextSqlNode(data));
         }
       } else if (child.getNode().getNodeType() == Node.ELEMENT_NODE) { // issue #628
+        // 节点类型，比如trim，where，if等
         String nodeName = child.getNode().getNodeName();
+        // 根据标签名获取对应的节点处理器
         NodeHandler handler = nodeHandlerMap.get(nodeName);
         if (handler == null) {
           throw new BuilderException("Unknown element <" + nodeName + "> in SQL statement.");
@@ -101,6 +118,8 @@ public class XMLScriptBuilder extends BaseBuilder {
     return new MixedSqlNode(contents);
   }
 
+
+  /** ========= 各标签（trim、where、set、foreach、if、choose、when、otherwise、bind）对应的处理器 =========  */
   private interface NodeHandler {
     void handleNode(XNode nodeToHandle, List<SqlNode> targetContents);
   }

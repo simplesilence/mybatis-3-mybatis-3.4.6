@@ -2,7 +2,7 @@ package org.apache.ibatis.localtest.mybatis;
 
 import org.apache.ibatis.io.Resources;
 import org.apache.ibatis.localtest.Student;
-import org.apache.ibatis.localtest.StudentManager;
+import org.apache.ibatis.localtest.StudentMapper;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.ibatis.session.SqlSessionFactoryBuilder;
@@ -24,7 +24,7 @@ public class MybatisTest {
 
         SqlSession sqlSession = build.openSession();
 
-        StudentManager mapper = sqlSession.getMapper(StudentManager.class);
+        StudentMapper mapper = sqlSession.getMapper(StudentMapper.class);
 
         List<Student> students = mapper.selectAllStudents();
 

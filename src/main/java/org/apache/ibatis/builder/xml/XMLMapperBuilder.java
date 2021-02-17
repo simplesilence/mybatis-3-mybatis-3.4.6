@@ -59,6 +59,7 @@ public class XMLMapperBuilder extends BaseBuilder {
   // 存放sql标签节点，命名空间.id属性值作为key，标签节点对象作为值，
   // 这里要注意这个取名，fragment，意为碎片，因为sql标签的设计就是为了重用一些sql碎片
   private final Map<String, XNode> sqlFragments;
+  // mapper标签的resource或url路径
   private final String resource;
 
   @Deprecated
@@ -106,7 +107,7 @@ public class XMLMapperBuilder extends BaseBuilder {
     if (!configuration.isResourceLoaded(resource)) {
       // 从根节点<mapper/> 开始解析
       configurationElement(parser.evalNode("/mapper"));
-      // 将当前资源放入已解析资源的集合中
+      // 将mapper标签的resource或url属性值放入configuration的loadedResources集合中
       configuration.addLoadedResource(resource);
       // 绑定当前mapper.xml通过namespace
       bindMapperForNamespace();
@@ -184,6 +185,7 @@ public class XMLMapperBuilder extends BaseBuilder {
       // 对增删改查标签封装为XMLStatementBuilder建造者
       final XMLStatementBuilder statementParser = new XMLStatementBuilder(configuration, builderAssistant, context, requiredDatabaseId);
       try {
+        // 解析为MappedStatement对象并放入configuration的mappedStatements集合中
         statementParser.parseStatementNode();
       } catch (IncompleteElementException e) {
         configuration.addIncompleteStatement(statementParser);
@@ -596,6 +598,10 @@ public class XMLMapperBuilder extends BaseBuilder {
     return null;
   }
 
+  /**
+   * 将当前mapper文件的命名空间以"namespace:mapper接口路径"的形式存入configuration的loadedResources集合中
+   * 将当前mapper文件的命名空间的接口Class对象存入configuration的mapperRegistry对象的knownMappers集合中
+   */
   private void bindMapperForNamespace() {
     String namespace = builderAssistant.getCurrentNamespace();
     if (namespace != null) {

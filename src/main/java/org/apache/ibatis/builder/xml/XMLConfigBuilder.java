@@ -643,13 +643,13 @@ public class XMLConfigBuilder extends BaseBuilder {
             // 解析mapper.xml文件中所有的标签元素，并各自封装为对象存入configuration中对应的容器中
             mapperParser.parse();
           } else if (resource == null && url != null && mapperClass == null) {
-            // url
+            // url，使用绝对路径加载资源
             ErrorContext.instance().resource(url);
             InputStream inputStream = Resources.getUrlAsStream(url);
             XMLMapperBuilder mapperParser = new XMLMapperBuilder(inputStream, configuration, url, configuration.getSqlFragments());
             mapperParser.parse();
           } else if (resource == null && url == null && mapperClass != null) {
-            // class
+            // mapper接口注解开发模式
             Class<?> mapperInterface = Resources.classForName(mapperClass);
             configuration.addMapper(mapperInterface);
           } else {

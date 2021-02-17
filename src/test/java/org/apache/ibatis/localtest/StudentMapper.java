@@ -2,7 +2,7 @@ package org.apache.ibatis.localtest;
 
 import java.util.List;
 
-public interface StudentManager {
+public interface StudentMapper {
 
     List<Student> selectAllStudents();
 }

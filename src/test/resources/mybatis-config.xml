@@ -33,5 +33,7 @@
     </environments>
     <mappers>
         <mapper resource="mapper/StudentMapper.xml"/>
+<!-- 配置class是mybatis支持注解开发的一种形式，在mapper接口文件中利用@Select等注解开发 -->
+<!--        <mapper class="org.apache.ibatis.localtest.StudentMapper"/>-->
     </mappers>
 </configuration>

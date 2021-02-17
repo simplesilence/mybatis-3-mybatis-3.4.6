@@ -23,10 +23,13 @@ import org.apache.ibatis.scripting.ScriptingException;
 import org.apache.ibatis.type.SimpleTypeRegistry;
 
 /**
+ * 纯文本的sql脚本，就是没有动态sql标签（if，where之类的）的纯文本sql节点的封装
  * @author Clinton Begin
  */
 public class TextSqlNode implements SqlNode {
+  // sql文本
   private final String text;
+  // 注入过滤器
   private final Pattern injectionFilter;
 
   public TextSqlNode(String text) {

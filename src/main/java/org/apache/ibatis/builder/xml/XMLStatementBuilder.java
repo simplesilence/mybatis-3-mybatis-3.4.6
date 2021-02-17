@@ -79,6 +79,7 @@ public class XMLStatementBuilder extends BaseBuilder {
     String resultType = context.getStringAttribute("resultType");
     // 该标签是动态 SQL 中的插入脚本语言的功能，不常用，暂不研究
     String lang = context.getStringAttribute("lang");
+    // 默认使用XMLLanguageDriver
     LanguageDriver langDriver = getLanguageDriver(lang);
 
     // 返回值映射的java类型Class对象
@@ -184,6 +185,7 @@ public class XMLStatementBuilder extends BaseBuilder {
     String resultMap = null;
     ResultSetType resultSetTypeEnum = null;
 
+    // 解析sql语句，创建SqlSource
     SqlSource sqlSource = langDriver.createSqlSource(configuration, nodeToHandle, parameterTypeClass);
     SqlCommandType sqlCommandType = SqlCommandType.SELECT;
 

@@ -306,7 +306,7 @@ public class MapperBuilderAssistant extends BaseBuilder {
   }
 
   /**
-   * 创建MappedStatement对象
+   * 创建MappedStatement对象，除了增删改查标签，selectKey标签也可以
    * @return
    */
   public MappedStatement addMappedStatement(
