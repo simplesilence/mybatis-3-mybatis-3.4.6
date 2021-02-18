@@ -36,12 +36,14 @@ import java.lang.reflect.Type;
 import java.util.*;
 
 /**
+ * 封装mapper接口文件的一个方法
  * @author Clinton Begin
  * @author Eduardo Macarron
  * @author Lasse Voss
  */
 public class MapperMethod {
 
+  // 两个都是内部类
   private final SqlCommand command;
   private final MethodSignature method;
 
@@ -208,16 +210,22 @@ public class MapperMethod {
 
   }
 
+  /**
+   * 解析出被代理加工的mapper接口的方法所映射的MappedStatement对象的id值和sql脚本命令类型
+   */
   public static class SqlCommand {
-
+    // sql脚本标签的id属性（全称）
     private final String name;
+    // sql脚本的类型
     private final SqlCommandType type;
 
     public SqlCommand(Configuration configuration, Class<?> mapperInterface, Method method) {
+      // 被代理增强的方法名
       final String methodName = method.getName();
+      // 该方法声明所在的类Class对象
       final Class<?> declaringClass = method.getDeclaringClass();
-      MappedStatement ms = resolveMappedStatement(mapperInterface, methodName, declaringClass,
-          configuration);
+      // 解析该方法所映射的MappedStatement对象
+      MappedStatement ms = resolveMappedStatement(mapperInterface, methodName, declaringClass, configuration);
       if (ms == null) {
         if (method.getAnnotation(Flush.class) != null) {
           name = null;
@@ -264,6 +272,9 @@ public class MapperMethod {
     }
   }
 
+  /**
+   * 方法签名对象，保存mapper接口对应方法的相关信息
+   */
   public static class MethodSignature {
 
     private final boolean returnsMany;
@@ -277,6 +288,7 @@ public class MapperMethod {
     private final ParamNameResolver paramNameResolver;
 
     public MethodSignature(Configuration configuration, Class<?> mapperInterface, Method method) {
+      // 解析方法返回值类型
       Type resolvedReturnType = TypeParameterResolver.resolveReturnType(method, mapperInterface);
       if (resolvedReturnType instanceof Class<?>) {
         this.returnType = (Class<?>) resolvedReturnType;
@@ -285,12 +297,19 @@ public class MapperMethod {
       } else {
         this.returnType = method.getReturnType();
       }
+      // 是否返回void
       this.returnsVoid = void.class.equals(this.returnType);
+      // 是否返回集合或数组
       this.returnsMany = configuration.getObjectFactory().isCollection(this.returnType) || this.returnType.isArray();
+      // 是否返回游标Cursor类型，不常用
       this.returnsCursor = Cursor.class.equals(this.returnType);
+      // 获取方法上@MapKey注解的内容
       this.mapKey = getMapKey(method);
+      // 是否返回Map类型
       this.returnsMap = this.mapKey != null;
+      // 获取RowBounds在参数列表的位置，RowBounds 参数会告诉 MyBatis 略过指定数量的记录，并限制返回结果的数量。不常用
       this.rowBoundsIndex = getUniqueParamIndex(method, RowBounds.class);
+      // 获取ResultHandler在参数列表的位置，ResultHandler 参数允许自定义每行结果的处理过程。不常用
       this.resultHandlerIndex = getUniqueParamIndex(method, ResultHandler.class);
       this.paramNameResolver = new ParamNameResolver(configuration, method);
     }
@@ -354,11 +373,16 @@ public class MapperMethod {
       return index;
     }
 
+    /**
+     * 获取@MapKey注解的内容
+     */
     private String getMapKey(Method method) {
       String mapKey = null;
+      // 如果返回值类型为Map类型
       if (Map.class.isAssignableFrom(method.getReturnType())) {
         final MapKey mapKeyAnnotation = method.getAnnotation(MapKey.class);
         if (mapKeyAnnotation != null) {
+          // 获取@MapKey注解的内容
           mapKey = mapKeyAnnotation.value();
         }
       }

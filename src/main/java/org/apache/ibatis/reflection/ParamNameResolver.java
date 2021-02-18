@@ -29,6 +29,9 @@ import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.session.ResultHandler;
 import org.apache.ibatis.session.RowBounds;
 
+/**
+ * 参数解析器
+ */
 public class ParamNameResolver {
 
   private static final String GENERIC_NAME_PREFIX = "param";
@@ -51,18 +54,24 @@ public class ParamNameResolver {
   private boolean hasParamAnnotation;
 
   public ParamNameResolver(Configuration config, Method method) {
+    // 方法的参数类型列表
     final Class<?>[] paramTypes = method.getParameterTypes();
+    // 解析方法参数注解，一个参数可以有多个注解，一维数组放所有参数的注解集合，二维数组放单个参数对应的注解集合
     final Annotation[][] paramAnnotations = method.getParameterAnnotations();
     final SortedMap<Integer, String> map = new TreeMap<Integer, String>();
+    // 参数个数
     int paramCount = paramAnnotations.length;
     // get names from @Param annotations
     for (int paramIndex = 0; paramIndex < paramCount; paramIndex++) {
+      // 跳过参数为RowBounds和ResultHandler
       if (isSpecialParameter(paramTypes[paramIndex])) {
         // skip special parameters
         continue;
       }
       String name = null;
+      // 遍历参数注解
       for (Annotation annotation : paramAnnotations[paramIndex]) {
+        // 只解析Param注解，获取value值
         if (annotation instanceof Param) {
           hasParamAnnotation = true;
           name = ((Param) annotation).value();
@@ -71,20 +80,36 @@ public class ParamNameResolver {
       }
       if (name == null) {
         // @Param was not specified.
+        // 是否全局配置了useActualParamName使用参数声明的名字
         if (config.isUseActualParamName()) {
+          /*
+           * 通过反射获取参数名称。此种方式要求JDK版本至少为1.8，且要求编译时加入-parameters参数，
+           * 否则获取到的参数名仍然是arg1，arg2...
+           */
           name = getActualParamName(method, paramIndex);
         }
         if (name == null) {
           // use the parameter index as the name ("0", "1", ...)
           // gcode issue #71
+          /*
+           * 使用map.size()返回值作为名称，思考一下为什么不这样写：name = String.valueOf(paramIndex);
+           * 因为如果参数列表中包含RowBounds或ResultHandler，这两个参数会被当前for循环第一步忽略掉，这样导致名字不连续。
+           * 比如参数列表(int p1, int p2, RowBounds rb, int p3)
+           *  - 期望得到名称列表为["0", "1", "2"]
+           *  - 实际得到名称列表为["0", "1", "3"]
+           */
           name = String.valueOf(map.size());
         }
       }
+      // 参数索引对应的名字
       map.put(paramIndex, name);
     }
     names = Collections.unmodifiableSortedMap(map);
   }
 
+  /**
+   * 根据索引，获取参数名
+   */
   private String getActualParamName(Method method, int paramIndex) {
     if (Jdk.parameterExists) {
       return ParamNameUtil.getParamNames(method).get(paramIndex);
