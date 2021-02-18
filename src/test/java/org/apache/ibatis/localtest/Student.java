@@ -2,59 +2,59 @@ package org.apache.ibatis.localtest;
 
 public class Student {
 
-    private Integer SId;
-    private String Sname;
-    private Integer Sage;
-    private String Ssex;
+    private Integer sId;
+    private String sName;
+    private Integer sAge;
+    private String sSex;
 
     public Student(){}
 
     public Student(Integer SId, String sname, Integer sage, String ssex) {
-        this.SId = SId;
-        Sname = sname;
-        Sage = sage;
-        Ssex = ssex;
+        this.sId = SId;
+        sName = sname;
+        sAge = sage;
+        sSex = ssex;
     }
 
     public Integer getSId() {
-        return SId;
+        return sId;
     }
 
     public void setSId(Integer SId) {
-        this.SId = SId;
+        this.sId = SId;
     }
 
     public String getSname() {
-        return Sname;
+        return sName;
     }
 
     public void setSname(String sname) {
-        Sname = sname;
+        sName = sname;
     }
 
     public Integer getSage() {
-        return Sage;
+        return sAge;
     }
 
     public void setSage(Integer sage) {
-        Sage = sage;
+        sAge = sage;
     }
 
     public String getSsex() {
-        return Ssex;
+        return sSex;
     }
 
     public void setSsex(String ssex) {
-        Ssex = ssex;
+        sSex = ssex;
     }
 
     @Override
     public String toString() {
         return "Student{" +
-                "SId='" + SId + '\'' +
-                ", Sname='" + Sname + '\'' +
-                ", Sage='" + Sage + '\'' +
-                ", Ssex='" + Ssex + '\'' +
+                "SId='" + sId + '\'' +
+                ", Sname='" + sName + '\'' +
+                ", Sage='" + sAge + '\'' +
+                ", Ssex='" + sSex + '\'' +
                 '}';
     }
 }

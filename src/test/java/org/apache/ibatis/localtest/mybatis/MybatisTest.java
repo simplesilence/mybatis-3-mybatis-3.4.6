@@ -26,9 +26,15 @@ public class MybatisTest {
 
         StudentMapper mapper = sqlSession.getMapper(StudentMapper.class);
 
+        System.out.println("============= 全部查询（xml） ============");
+
         List<Student> students = mapper.selectAllStudents();
 
         students.forEach(item -> System.out.println(item));
+
+        System.out.println("============= 单条查询（annotation） ============");
+
+        System.out.println(mapper.selectStudentById(2));
     }
 
 }

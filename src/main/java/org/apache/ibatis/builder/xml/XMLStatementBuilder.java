@@ -114,6 +114,7 @@ public class XMLStatementBuilder extends BaseBuilder {
     processSelectKeyNodes(id, parameterTypeClass, langDriver);
     
     // Parse the SQL (pre: <selectKey> and <include> were parsed and removed)
+    // 解析sql，前提是上面selectKey和include已被解析完从dom树中移除
     SqlSource sqlSource = langDriver.createSqlSource(configuration, context, parameterTypeClass);
     String resultSets = context.getStringAttribute("resultSets");
 

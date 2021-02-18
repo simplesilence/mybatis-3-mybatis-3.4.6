@@ -121,6 +121,7 @@ public class MapperAnnotationBuilder {
 
   /**
    * 解析mapper接口
+   * 接口方法上的注解以及该接口所绑定的xml文件
    */
   public void parse() {
     // 该接口的toString

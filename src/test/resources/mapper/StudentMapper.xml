@@ -6,10 +6,10 @@
 <mapper namespace="org.apache.ibatis.localtest.StudentMapper">
 
     <sql id="studentSql">
-        SId,
-        Sname,
-        Sage,
-        Ssex
+        sId,
+        sName,
+        sAge,
+        sSex
     </sql>
     <select id="selectAllStudents" resultType="org.apache.ibatis.localtest.Student">
         select <include refid="studentSql"/> from student

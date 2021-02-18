@@ -75,8 +75,11 @@ public class MapperRegistry {
         // It's important that the type is added before the parser is run
         // otherwise the binding may automatically be attempted by the
         // mapper parser. If the type is already known, it won't try.
-        // 把当前接口封装一层为MapperAnnotationBuilder，实质上该类也解析了对应的mapper.xml文件（如果mapper.xml的全限定类名和接口一致）
+        //mybatis 支持xml和annotation混合的开发方式
+        // 把当前接口封装一层为MapperAnnotationBuilder，因为接口上也可以使用@Select等注解类型写sql语句
+        // 实质上该类也解析了对应的mapper.xml文件（如果mapper.xml的全限定类名和接口一致）
         MapperAnnotationBuilder parser = new MapperAnnotationBuilder(config, type);
+        // 解析接口方法上面的注解
         parser.parse();
         loadCompleted = true;
       } finally {
