@@ -28,7 +28,7 @@ import org.apache.ibatis.reflection.ExceptionUtil;
 import org.apache.ibatis.session.SqlSession;
 
 /**
- * Mapper接口代理的Handler
+ * Mapper接口代理的Handler实现
  * @author Clinton Begin
  * @author Eduardo Macarron
  */
@@ -61,8 +61,12 @@ public class MapperProxy<T> implements InvocationHandler, Serializable {
     } catch (Throwable t) {
       throw ExceptionUtil.unwrapThrowable(t);
     }
-    // 获取MapperMethod
+
+    /*
+     * 获取 MapperMethod，先对需要代理的方法加工
+     */
     final MapperMethod mapperMethod = cachedMapperMethod(method);
+    // 使用mapperMethod执行sql
     return mapperMethod.execute(sqlSession, args);
   }
 

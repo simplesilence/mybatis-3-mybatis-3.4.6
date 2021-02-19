@@ -32,6 +32,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
+ * sql脚本执行器Simple实现
  * @author Clinton Begin
  */
 public class SimpleExecutor extends BaseExecutor {
@@ -40,6 +41,9 @@ public class SimpleExecutor extends BaseExecutor {
     super(configuration, transaction);
   }
 
+  /**
+   * doUpdate操作数据库更新
+   */
   @Override
   public int doUpdate(MappedStatement ms, Object parameter) throws SQLException {
     Statement stmt = null;
@@ -53,8 +57,12 @@ public class SimpleExecutor extends BaseExecutor {
     }
   }
 
+  /**
+   * doQuery操作数据库查询
+   */
   @Override
   public <E> List<E> doQuery(MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler, BoundSql boundSql) throws SQLException {
+    // 这里用的就是JDBC中的Statement
     Statement stmt = null;
     try {
       Configuration configuration = ms.getConfiguration();

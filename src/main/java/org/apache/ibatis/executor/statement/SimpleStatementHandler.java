@@ -32,6 +32,7 @@ import org.apache.ibatis.session.ResultHandler;
 import org.apache.ibatis.session.RowBounds;
 
 /**
+ * Statement处理器Simple实现
  * @author Clinton Begin
  */
 public class SimpleStatementHandler extends BaseStatementHandler {
@@ -67,10 +68,16 @@ public class SimpleStatementHandler extends BaseStatementHandler {
     statement.addBatch(sql);
   }
 
+  /**
+   * jdbc查询
+   */
   @Override
   public <E> List<E> query(Statement statement, ResultHandler resultHandler) throws SQLException {
+    // 获取sql语句
     String sql = boundSql.getSql();
+    // 执行sql
     statement.execute(sql);
+    // sql结果处理
     return resultSetHandler.<E>handleResultSets(statement);
   }
 

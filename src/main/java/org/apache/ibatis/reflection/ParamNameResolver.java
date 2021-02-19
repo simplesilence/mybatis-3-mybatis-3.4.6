@@ -49,6 +49,7 @@ public class ParamNameResolver {
    * <li>aMethod(int a, RowBounds rb, int b) -&gt; {{0, "0"}, {2, "1"}}</li>
    * </ul>
    */
+  // 存放参数索引对应的参数名字，没有@Param指定名字用索引1、2、3代替
   private final SortedMap<Integer, String> names;
 
   private boolean hasParamAnnotation;
@@ -101,7 +102,7 @@ public class ParamNameResolver {
           name = String.valueOf(map.size());
         }
       }
-      // 参数索引对应的名字
+      // 参数索引对应的参数名字
       map.put(paramIndex, name);
     }
     names = Collections.unmodifiableSortedMap(map);
@@ -141,15 +142,28 @@ public class ParamNameResolver {
     if (args == null || paramCount == 0) {
       return null;
     } else if (!hasParamAnnotation && paramCount == 1) {
+
+      // 只有一个参数的情况
+
+      /*
+       * 如果方法参数列表无@Param注解，且仅有一个非特别参数，则返回参数的值：
+       *  List findList(RowBounds rb, String name)
+       * names 如下：
+       *  names = {1 : "0"}
+       * 此种情况下，args[names.firstKey()] = args[1] -> name(参数定义的名字)
+       * firstKey获取当前Map中key值最小
+       */
       return args[names.firstKey()];
     } else {
       final Map<String, Object> param = new ParamMap<Object>();
       int i = 0;
       for (Map.Entry<Integer, String> entry : names.entrySet()) {
+        // 添加<参数名，参数值> 键值对到param中
         param.put(entry.getValue(), args[entry.getKey()]);
         // add generic param names (param1, param2, ...)
         final String genericParamName = GENERIC_NAME_PREFIX + String.valueOf(i + 1);
         // ensure not to overwrite parameter named with @Param
+        // 监测names中是否包含genericParamName，除非用户显示@Param("param1")这样子定义
         if (!names.containsValue(genericParamName)) {
           param.put(genericParamName, args[entry.getKey()]);
         }

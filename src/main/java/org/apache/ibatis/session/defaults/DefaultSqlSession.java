@@ -72,6 +72,9 @@ public class DefaultSqlSession implements SqlSession {
     return this.<T>selectOne(statement, null);
   }
 
+  /**
+   * 查询只有一个返回值的，最终还是调用selectList
+   */
   @Override
   public <T> T selectOne(String statement, Object parameter) {
     // Popular vote was to return null on 0 results and throw exception on too many.
@@ -142,9 +145,21 @@ public class DefaultSqlSession implements SqlSession {
     return this.selectList(statement, parameter, RowBounds.DEFAULT);
   }
 
+  /**
+   * 列表查询
+   * @param statement Unique identifier matching the statement to use.
+   *                  sql脚本的唯一id
+   * @param parameter A parameter object to pass to the statement.
+   *                  sql脚本所需要的参数
+   * @param rowBounds  Bounds to limit object retrieval
+   *                   限制返回的处理偏移量对象
+   * @param <E>
+   * @return
+   */
   @Override
   public <E> List<E> selectList(String statement, Object parameter, RowBounds rowBounds) {
     try {
+      // 获取sql脚本id所对应的MappedStatement对象
       MappedStatement ms = configuration.getMappedStatement(statement);
       return executor.query(ms, wrapCollection(parameter), rowBounds, Executor.NO_RESULT_HANDLER);
     } catch (Exception e) {
@@ -288,6 +303,9 @@ public class DefaultSqlSession implements SqlSession {
     return configuration;
   }
 
+  /**
+   * 获取map接口的动态代理接口
+   */
   @Override
   public <T> T getMapper(Class<T> type) {
     return configuration.<T>getMapper(type, this);

@@ -52,11 +52,16 @@ public class MapperMethod {
     this.method = new MethodSignature(config, mapperInterface, method);
   }
 
+  /**
+   * 执行sql
+   */
   public Object execute(SqlSession sqlSession, Object[] args) {
     Object result;
     switch (command.getType()) {
       case INSERT: {
-      Object param = method.convertArgsToSqlCommandParam(args);
+        // 转换参数
+        Object param = method.convertArgsToSqlCommandParam(args);
+        // 执行insert操作，rowCountResult用于sql返回值处理，看名字就是影响行数的处理
         result = rowCountResult(sqlSession.insert(command.getName(), param));
         break;
       }
@@ -71,26 +76,36 @@ public class MapperMethod {
         break;
       }
       case SELECT:
+        // 根据目标方法的返回类型进行相应的查询操作
         if (method.returnsVoid() && method.hasResultHandler()) {
+          /*
+           * 如果方法返回值为Void，但参数列表中包含ResultHandler，表明使用者想通过ResultHandler的方式获取查询结果进行处理
+           */
           executeWithResultHandler(sqlSession, args);
           result = null;
         } else if (method.returnsMany()) {
+          // 返回多个结果类型，Collection类型或数组
           result = executeForMany(sqlSession, args);
         } else if (method.returnsMap()) {
+          // 返回map类型
           result = executeForMap(sqlSession, args);
         } else if (method.returnsCursor()) {
+          // 返回游标cursor类型
           result = executeForCursor(sqlSession, args);
         } else {
+          // 单个返回值
           Object param = method.convertArgsToSqlCommandParam(args);
           result = sqlSession.selectOne(command.getName(), param);
         }
         break;
       case FLUSH:
+        // 刷新
         result = sqlSession.flushStatements();
         break;
       default:
         throw new BindingException("Unknown execution method for: " + command.getName());
     }
+    // 如果方法的返回值为基本类型（非包装类），而返回值是null，抛异常
     if (result == null && method.getReturnType().isPrimitive() && !method.returnsVoid()) {
       throw new BindingException("Mapper method '" + command.getName() 
           + " attempted to return null from a method with a primitive return type (" + method.getReturnType() + ").");
@@ -314,6 +329,9 @@ public class MapperMethod {
       this.paramNameResolver = new ParamNameResolver(configuration, method);
     }
 
+    /**
+     * 转换动态代理拿到的参数数组转换为sql脚本所需的参数
+     */
     public Object convertArgsToSqlCommandParam(Object[] args) {
       return paramNameResolver.getNamedParams(args);
     }
