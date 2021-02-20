@@ -23,6 +23,7 @@ import org.apache.ibatis.mapping.SqlSource;
 import org.apache.ibatis.session.Configuration;
 
 /**
+ * 动态SqlSource（有if、where等标签，有xml本身的占位符${}，注意：不是#{}）
  * @author Clinton Begin
  */
 public class DynamicSqlSource implements SqlSource {

@@ -57,9 +57,16 @@ public class PreparedStatementHandler extends BaseStatementHandler {
     ps.addBatch();
   }
 
+  /**
+   * PreparedStatement JDBC操作数据库
+   */
   @Override
   public <E> List<E> query(Statement statement, ResultHandler resultHandler) throws SQLException {
     PreparedStatement ps = (PreparedStatement) statement;
+    /*
+     * 可以执行SQL的增删改查语句，并返回boolean值，来显示当前SQL语句执行后是否返回了ResultSet。
+     * true表示执行的是查询语句，false表示执行的是insert,delete,update等等其他语句。 返回多个结果集，多个更新计数的语句
+     */
     ps.execute();
     return resultSetHandler.<E> handleResultSets(ps);
   }

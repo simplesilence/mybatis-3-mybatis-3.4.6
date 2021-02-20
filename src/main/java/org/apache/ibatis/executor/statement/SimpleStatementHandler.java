@@ -33,6 +33,7 @@ import org.apache.ibatis.session.RowBounds;
 
 /**
  * Statement处理器Simple实现
+ * 这个类对应于JDBC的Statement对象，用于没有预编译参数的SQL的运行。
  * @author Clinton Begin
  */
 public class SimpleStatementHandler extends BaseStatementHandler {
