@@ -33,7 +33,7 @@ import org.apache.ibatis.session.RowBounds;
 import org.apache.ibatis.transaction.Transaction;
 
 /**
- * 二级缓存执行器
+ * 默认一级缓存执行器，委派模式
  * @author Clinton Begin
  * @author Eduardo Macarron
  */
@@ -77,6 +77,11 @@ public class CachingExecutor implements Executor {
     return delegate.update(ms, parameterObject);
   }
 
+  /**
+   * 一级缓存执行器查询
+   * @return
+   * @throws SQLException
+   */
   @Override
   public <E> List<E> query(MappedStatement ms, Object parameterObject, RowBounds rowBounds, ResultHandler resultHandler) throws SQLException {
     BoundSql boundSql = ms.getBoundSql(parameterObject);
