@@ -16,11 +16,15 @@
 package org.apache.ibatis.scripting.xmltags;
 
 /**
+ * If标签节点
  * @author Clinton Begin
  */
 public class IfSqlNode implements SqlNode {
+  // 表达式解析器，用于判断"if test='条件'"是否成立
   private final ExpressionEvaluator evaluator;
+  // 成立条件
   private final String test;
+  // if节点的子节点
   private final SqlNode contents;
 
   public IfSqlNode(SqlNode contents, String test) {
@@ -29,9 +33,15 @@ public class IfSqlNode implements SqlNode {
     this.evaluator = new ExpressionEvaluator();
   }
 
+  /**
+   * 如果当前if节点的条件成立，则判断子节点的条件是否成立
+   * @param context 上下文，在执行时该对象会持有用户传入的实际动态节点上下文
+   * @return
+   */
   @Override
   public boolean apply(DynamicContext context) {
     if (evaluator.evaluateBoolean(test, context.getBindings())) {
+      // 子节点是否成立不能影响当前节点的判断结果，所以这里没有直接返回
       contents.apply(context);
       return true;
     }

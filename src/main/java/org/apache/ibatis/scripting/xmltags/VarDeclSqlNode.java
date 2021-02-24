@@ -16,11 +16,21 @@
 package org.apache.ibatis.scripting.xmltags;
 
 /**
+ * bind标签，用于变量声明，bind 元素允许你在 OGNL 表达式以外创建一个变量，并将其绑定到当前的上下文。
+ * 使用：
+ *    <select id="selectBlogsLike" resultType="Blog">
+ *      <bind name="pattern" value="'%' + _parameter.getTitle() + '%'" />
+ *      SELECT * FROM BLOG
+ *      WHERE title LIKE #{pattern}
+ *    </select>
+ *  注意：上面value的写法，_parameter指传入的对象参数，用get()方式取参，这是OGNL写法，需要注意
+ * VarDecl全称为Var Declare
  * @author Frank D. Martinez [mnesarco]
  */
 public class VarDeclSqlNode implements SqlNode {
-
+  // bind标签name属性
   private final String name;
+  // bind标签value属性
   private final String expression;
 
   public VarDeclSqlNode(String var, String exp) {
@@ -30,6 +40,7 @@ public class VarDeclSqlNode implements SqlNode {
 
   @Override
   public boolean apply(DynamicContext context) {
+    // 从Ognl缓存中获取值
     final Object value = OgnlCache.getValue(expression, context.getBindings());
     context.bind(name, value);
     return true;

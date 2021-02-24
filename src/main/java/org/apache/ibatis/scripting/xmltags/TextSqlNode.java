@@ -23,13 +23,13 @@ import org.apache.ibatis.scripting.ScriptingException;
 import org.apache.ibatis.type.SimpleTypeRegistry;
 
 /**
- * 纯文本的sql脚本，就是没有动态sql标签（if，where之类的）的纯文本sql节点的封装
+ * 文本节点，指那些定义在动态标签里的文本，比如if标签里的
  * @author Clinton Begin
  */
 public class TextSqlNode implements SqlNode {
-  // sql文本
+  // 包含占位符的原始文本字符串
   private final String text;
-  // 注入过滤器
+  // 校验实参的正则对象
   private final Pattern injectionFilter;
 
   public TextSqlNode(String text) {
@@ -40,7 +40,11 @@ public class TextSqlNode implements SqlNode {
     this.text = text;
     this.injectionFilter = injectionFilter;
   }
-  
+
+  /**
+   * 判断当前文本字符串是否包含${}占位符，各种判断字符串中是否存在占位符${}
+   * @return
+   */
   public boolean isDynamic() {
     DynamicCheckerTokenParser checker = new DynamicCheckerTokenParser();
     GenericTokenParser parser = createParser(checker);
@@ -48,9 +52,17 @@ public class TextSqlNode implements SqlNode {
     return checker.isDynamic();
   }
 
+  /**
+   * 从上下文中获取用户传入的实际参数，并使用实际参数替换对应的占位符
+   * 再通过injectionFilter 字段所表示的正则对实参进行校验，最后将处理后的sql字符串添加到上下文中。
+   * @param context 上下文，在执行时该对象会持有用户传入的实际动态节点上下文
+   * @return
+   */
   @Override
   public boolean apply(DynamicContext context) {
+    // 创建${}占位符解析器
     GenericTokenParser parser = createParser(new BindingTokenParser(context, injectionFilter));
+    // 解析${}占位符，并将解析结果添加到DynamicContext中
     context.appendSql(parser.parse(text));
     return true;
   }
@@ -77,8 +89,10 @@ public class TextSqlNode implements SqlNode {
       } else if (SimpleTypeRegistry.isSimpleType(parameter.getClass())) {
         context.getBindings().put("value", parameter);
       }
+      // 从上下文中获取实际参数
       Object value = OgnlCache.getValue(content, context.getBindings());
       String srtValue = (value == null ? "" : String.valueOf(value)); // issue #274 return "" instead of "null"
+      // 通过正则匹配的方式检查实参是否合法
       checkInjection(srtValue);
       return srtValue;
     }

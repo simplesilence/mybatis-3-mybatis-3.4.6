@@ -18,10 +18,13 @@ package org.apache.ibatis.scripting.xmltags;
 import java.util.List;
 
 /**
+ * choose标签节点，子标签有when、otherwise
  * @author Clinton Begin
  */
 public class ChooseSqlNode implements SqlNode {
+  // 对应otherwise标签
   private final SqlNode defaultSqlNode;
+  // 对应when标签
   private final List<SqlNode> ifSqlNodes;
 
   public ChooseSqlNode(List<SqlNode> ifSqlNodes, SqlNode defaultSqlNode) {
@@ -31,11 +34,13 @@ public class ChooseSqlNode implements SqlNode {
 
   @Override
   public boolean apply(DynamicContext context) {
+    // 遍历ifSqlNodes集合，查找条件成立的SqlNode
     for (SqlNode sqlNode : ifSqlNodes) {
       if (sqlNode.apply(context)) {
         return true;
       }
     }
+    // 所有when标签都不成立，选择otherwise标签
     if (defaultSqlNode != null) {
       defaultSqlNode.apply(context);
       return true;

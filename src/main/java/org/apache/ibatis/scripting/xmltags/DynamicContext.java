@@ -31,6 +31,7 @@ import org.apache.ibatis.session.Configuration;
  */
 public class DynamicContext {
 
+  // 默认参数key
   public static final String PARAMETER_OBJECT_KEY = "_parameter";
   public static final String DATABASE_ID_KEY = "_databaseId";
 
@@ -39,6 +40,7 @@ public class DynamicContext {
   }
 
   private final ContextMap bindings;
+  // 将所有slq Node解析后的sql语句
   private final StringBuilder sqlBuilder = new StringBuilder();
   private int uniqueNumber = 0;
 

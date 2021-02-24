@@ -16,6 +16,7 @@
 package org.apache.ibatis.scripting.xmltags;
 
 /**
+ * 文本类型sql节点，其中的文本不包含任何动态元素，即不包括${}这种占位符
  * @author Clinton Begin
  */
 public class StaticTextSqlNode implements SqlNode {
@@ -25,6 +26,11 @@ public class StaticTextSqlNode implements SqlNode {
     this.text = text;
   }
 
+  /**
+   * 因为StaticTextSqlNode表示不包含任何动态元素的节点，所以不需要对其做任何处理
+   * @param context 上下文，在执行时该对象会持有用户传入的实际动态节点上下文
+   * @return
+   */
   @Override
   public boolean apply(DynamicContext context) {
     context.appendSql(text);

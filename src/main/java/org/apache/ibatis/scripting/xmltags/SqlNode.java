@@ -19,5 +19,11 @@ package org.apache.ibatis.scripting.xmltags;
  * @author Clinton Begin
  */
 public interface SqlNode {
+
+  /**
+   *
+   * @param context 动态节点上下文，在执行时该对象会持有用户传入的实际动态节点上下文
+   * @return 当前sql Node节点是否应用成功
+   */
   boolean apply(DynamicContext context);
 }
