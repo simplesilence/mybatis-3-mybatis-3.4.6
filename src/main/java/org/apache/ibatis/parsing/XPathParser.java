@@ -248,7 +248,7 @@ public class XPathParser {
   }
 
   /**
-   * 根据文件流
+   * 根据xml文件流创建一个Document文档对象
    * @param inputSource
    * @return
    */
