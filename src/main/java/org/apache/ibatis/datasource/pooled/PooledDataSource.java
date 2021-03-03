@@ -383,6 +383,9 @@ public class PooledDataSource implements DataSource {
     }
   }
 
+  /**
+   * 弹出的第一个可用connection，用ArrayList模拟栈结构
+   */
   private PooledConnection popConnection(String username, String password) throws SQLException {
     boolean countedWait = false;
     PooledConnection conn = null;

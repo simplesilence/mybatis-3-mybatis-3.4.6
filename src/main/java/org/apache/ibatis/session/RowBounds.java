@@ -16,6 +16,7 @@
 package org.apache.ibatis.session;
 
 /**
+ * mybatis用于分页的的类，不是很常用，一般用第三方分页差价
  * @author Clinton Begin
  */
 public class RowBounds {

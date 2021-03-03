@@ -22,6 +22,9 @@ import org.apache.ibatis.datasource.unpooled.UnpooledDataSourceFactory;
  */
 public class PooledDataSourceFactory extends UnpooledDataSourceFactory {
 
+  // 第一行有super()
+  // 默认先调用UnpooledDataSourceFactory的构造实例了化dataSource为UnpooledDataSource，然后再覆盖掉
+  // 这里感觉UnpooledDataSourceFactory中的构造方法实现不合理，会造成多一次构造UnpooledDataSource对象的时间浪费
   public PooledDataSourceFactory() {
     this.dataSource = new PooledDataSource();
   }

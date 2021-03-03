@@ -182,6 +182,9 @@ public class UnpooledDataSource implements DataSource {
     this.defaultTransactionIsolationLevel = defaultTransactionIsolationLevel;
   }
 
+  /**
+   * 获取数据库连接
+   */
   private Connection doGetConnection(String username, String password) throws SQLException {
     Properties props = new Properties();
     if (driverProperties != null) {
@@ -195,14 +198,19 @@ public class UnpooledDataSource implements DataSource {
     }
     return doGetConnection(props);
   }
-
   private Connection doGetConnection(Properties properties) throws SQLException {
+    // 加载驱动
     initializeDriver();
+    // 获取连接
     Connection connection = DriverManager.getConnection(url, properties);
+    // 给连接配置是否自动提交和事务隔离级别
     configureConnection(connection);
     return connection;
   }
 
+  /**
+   * 初始化数据库驱动
+   */
   private synchronized void initializeDriver() throws SQLException {
     if (!registeredDrivers.containsKey(driver)) {
       Class<?> driverType;
@@ -223,6 +231,9 @@ public class UnpooledDataSource implements DataSource {
     }
   }
 
+  /**
+   * 配置数据库连接
+   */
   private void configureConnection(Connection conn) throws SQLException {
     if (autoCommit != null && autoCommit != conn.getAutoCommit()) {
       conn.setAutoCommit(autoCommit);
