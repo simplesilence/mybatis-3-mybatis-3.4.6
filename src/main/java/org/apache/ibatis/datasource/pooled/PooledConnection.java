@@ -24,6 +24,7 @@ import java.sql.SQLException;
 import org.apache.ibatis.reflection.ExceptionUtil;
 
 /**
+ * 该类为connection的代理处理handler
  * @author Clinton Begin
  */
 class PooledConnection implements InvocationHandler {
@@ -72,7 +73,7 @@ class PooledConnection implements InvocationHandler {
 
   /*
    * Method to see if the connection is usable
-   *
+   * 检查connection是否有效valid，并且realConnection不为空，并且数据源的测试ping语句能ping通
    * @return True if the connection is usable
    */
   public boolean isValid() {
@@ -238,16 +239,19 @@ class PooledConnection implements InvocationHandler {
   @Override
   public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
     String methodName = method.getName();
+    // 如果调用了jdbc中connection的close方法，则将当前代理handler回收到空闲集合中
     if (CLOSE.hashCode() == methodName.hashCode() && CLOSE.equals(methodName)) {
       dataSource.pushConnection(this);
       return null;
     } else {
       try {
+        // getDeclaringClass刚方法是返回定义method所在的类，即当前这步是判断非定义在Object中的方法
         if (!Object.class.equals(method.getDeclaringClass())) {
           // issue #579 toString() should never fail
           // throw an SQLException instead of a Runtime
           checkConnection();
         }
+        // invoke Connection对象的其他方法
         return method.invoke(realConnection, args);
       } catch (Throwable t) {
         throw ExceptionUtil.unwrapThrowable(t);
